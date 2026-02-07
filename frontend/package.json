@@ -1,0 +1,12 @@
+{
+  "name": "syft-watching-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "react": "18.x",
+    "react-native": "0.71.x"
+  },
+  "scripts": {
+    "start": "echo 'RN app skeleton; run with Expo or RN CLI in a real project'"
+  }
+}
