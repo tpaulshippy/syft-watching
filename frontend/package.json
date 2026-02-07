@@ -3,10 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "react": "18.x",
-    "react-native": "0.71.x"
+    "expo": "^54.0.0",
+    "react": "^18.2.0",
+    "react-native": "^0.71.8",
+    "react-dom": "^18.2.0",
+    "react-native-web": "^0.17.3"
   },
   "scripts": {
-    "start": "echo 'RN app skeleton; run with Expo or RN CLI in a real project'"
+    "start": "expo start",
+    "web": "expo start --web",
+    "android": "expo start --android",
+    "ios": "expo start --ios"
   }
 }
