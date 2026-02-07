@@ -14,11 +14,10 @@ Syft Watching is a web application that lets parents grant teens access to YouTu
 - Syft Watching does not remove YouTube policies or bypass YouTube access controls; it simply restricts what the app can surface to teens within the app.
 
 ## Tech stack (example)
-- Frontend: React + TypeScript, YouTube IFrame Player API
-- Backend: Node.js + Express (or Nest), TypeScript
+ - Frontend: React Native
+ - Backend: Ruby on Rails
 - Database: PostgreSQL
 - Auth: OAuth2 for YouTube account linkage; JSON Web Tokens for sessions
-- Hosting: Docker Compose (local) / Kubernetes (production)
 
 ## Getting started (local development)
 ### Prereqs
