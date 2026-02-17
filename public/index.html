@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player - NewTube</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: #0f0f0f;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .header h1 {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 500;
+        }
+        
+        .header .logo {
+            color: #f00;
+            font-size: 24px;
+        }
+        
+        .player-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 24px;
+            background: #0f0f0f;
+        }
+        
+        .video-wrapper {
+            width: 100%;
+            max-width: 1280px;
+            position: relative;
+        }
+        
+        #player {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+        }
+        
+        .video-info {
+            padding: 16px 24px;
+            background: #1a1a1a;
+        }
+        
+        .video-title {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .video-meta {
+            color: #aaa;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span class="logo">▶</span>
+        <h1>Syft Watching</h1>
+    </div>
+    
+    <div class="player-container">
+        <div class="video-wrapper">
+            <div id="player"></div>
+        </div>
+    </div>
+    
+    <div class="video-info">
+        <div class="video-title" id="videoTitle">Loading...</div>
+        <div class="video-meta" id="videoMeta"></div>
+    </div>
+
+    <script>
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        
+        var player;
+        var videoId = 'VIDEO_ID_PLACEHOLDER';
+        
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                videoId: videoId,
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 1,
+                    'rel': 0,
+                    'showinfo': 0,
+                    'modestbranding': 1,
+                    'playsinline': 1,
+                    'loop': 0,
+                    'origin': 'ORIGIN_PLACEHOLDER'
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange,
+                    'onError': onPlayerError
+                }
+            });
+        }
+        
+        function onPlayerReady(event) {
+            var title = player.getVideoData();
+            if (title && title.title) {
+                document.getElementById('videoTitle').textContent = title.title;
+            }
+        }
+        
+        function onPlayerStateChange(event) {
+            console.log('State:', event.data);
+        }
+        
+        function onPlayerError(event) {
+            console.log('Error:', event.data);
+            var errorMessages = {
+                2: 'Invalid video ID',
+                5: 'HTML5 player error',
+                100: 'Video not found',
+                101: 'Embedding disabled by owner',
+                150: 'Embedding disabled by owner'
+            };
+            document.getElementById('videoTitle').textContent = 'Error: ' + (errorMessages[event.data] || 'Unknown error (' + event.data + ')');
+        }
+    </script>
+</body>
+</html>
