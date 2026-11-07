@@ -7,7 +7,11 @@
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 
-export async function onRequestGet({ request }) {
+import { verifyGoogleIdToken, getBearerToken } from "../lib/auth.js";
+
+export async function onRequestGet({ request, env }) {
+  const user = await verifyGoogleIdToken(env, getBearerToken(request));
+  if (!user) return json({ error: "login required" }, 401);
   const q = (new URL(request.url).searchParams.get("q") || "").trim();
   if (!q) return json({ results: [] });
   const [yt, jw, itunes, tvmaze] = await Promise.allSettled([
@@ -37,7 +41,7 @@ export async function onRequestGet({ request }) {
   return json({ results }, 200, true);
 }
 
-// --- YouTube: three-stage keyless parse (copied from functions/api/youtube.js) ---
+// --- YouTube: three-stage keyless parse ---
 async function youtubeSearch(q) {
   try {
     const url =

@@ -1,5 +1,11 @@
 // POST /api/notify with JSON {"title","url","source"} -> sends an email via Resend.
+// Requires Authorization: Bearer <Google ID token>; the subject uses the
+// verified user's first name (never a client-sent name).
+import { verifyGoogleIdToken, getBearerToken } from "../lib/auth.js";
+
 export async function onRequestPost({ request, env }) {
+  const user = await verifyGoogleIdToken(env, getBearerToken(request));
+  if (!user) return json({ error: "login required" }, 401);
   if (!env?.RESEND_API_KEY || !env?.DAD_EMAIL) return json({ error: "email not configured" }, 503);
   let body;
   try {
@@ -13,6 +19,8 @@ export async function onRequestPost({ request, env }) {
   if (!title || !url) return json({ error: "title and url required" }, 400);
   const from = env.FROM_EMAIL || "Syft Watching <onboarding@resend.dev>";
   const to = env.DAD_EMAIL;
+  const name =
+    (user.firstName || "").trim() || String(user.email || "").split("@")[0] || "Someone";
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -23,7 +31,7 @@ export async function onRequestPost({ request, env }) {
       body: JSON.stringify({
         from,
         to: [to],
-        subject: "Judah watched: " + title,
+        subject: name + " watched: " + title,
         text: title + " (" + source + ")\n" + url + "\n" + new Date().toISOString(),
       }),
       signal: AbortSignal.timeout(8000),

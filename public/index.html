@@ -53,6 +53,7 @@
       radial-gradient(700px 320px at 15% -40px, rgba(255,176,32,.28), transparent 60%),
       radial-gradient(800px 380px at 90% -60px, rgba(61,218,215,.22), transparent 60%),
       var(--bg)}
+  [hidden]{display:none!important}
   .wrap{max-width:960px;margin:0 auto;padding:0 18px 90px}
   header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 0 6px}
   .brand{display:flex;align-items:center;gap:12px}
@@ -63,12 +64,70 @@
   }
   .brand h1{font-family:"Baloo 2",cursive;font-size:1.55rem;margin:0;line-height:1.05;letter-spacing:.2px}
   .brand p{margin:2px 0 0;color:var(--ink-dim);font-size:.95rem;font-weight:600}
+  .top-right{display:flex;align-items:center;gap:10px;flex:none}
+  #userArea{display:flex;align-items:center;gap:8px}
+  #userChip{
+    display:inline-flex;align-items:center;gap:8px;max-width:200px;
+    background:rgba(61,218,215,.12);border:2px solid rgba(61,218,215,.5);
+    color:var(--ink);font-weight:800;font-size:.95rem;
+    padding:8px 14px 8px 8px;border-radius:999px;white-space:nowrap;overflow:hidden;
+  }
+  #userChip img{width:28px;height:28px;border-radius:50%;object-fit:cover;flex:none}
+  #signOutBtn{
+    border:2px solid var(--line);background:var(--card);color:var(--ink);
+    font-family:"Nunito",sans-serif;font-weight:800;font-size:.92rem;cursor:pointer;
+    border-radius:14px;padding:10px 14px;min-height:48px;
+  }
+  #signOutBtn:active{transform:scale(.96)}
   #themeBtn{
     border:2px solid var(--line);background:var(--card);color:var(--ink);
     font-size:1.25rem;width:56px;height:56px;border-radius:18px;cursor:pointer;flex:none;
     box-shadow:var(--shadow);transition:transform .15s ease;
   }
   #themeBtn:active{transform:scale(.93)}
+  .wall{
+    margin:14px 0 16px;background:linear-gradient(180deg,var(--card),var(--bg-soft));
+    border:2px solid var(--line);border-radius:28px;padding:38px 24px 30px;
+    box-shadow:var(--shadow);text-align:center;position:relative;overflow:hidden;
+  }
+  .wall::after{
+    content:"";position:absolute;inset:auto -60px -90px -60px;height:150px;
+    background:radial-gradient(closest-side,rgba(255,176,32,.25),transparent);
+    pointer-events:none;
+  }
+  .rocket{
+    width:96px;height:96px;margin:0 auto 8px;border-radius:32px;display:grid;place-items:center;font-size:3.4rem;
+    background:linear-gradient(135deg,#ffb020,#ff6b6b 60%,#7c5cff);
+    box-shadow:0 12px 30px rgba(255,107,107,.45);
+    animation:float 3s ease-in-out infinite;
+  }
+  @keyframes float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+  .wall h2{font-family:"Baloo 2",cursive;margin:10px 0 0;font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.1}
+  .wall h2 .hl{color:var(--accent)}
+  .wall .why{margin:8px auto 0;max-width:26rem;color:var(--ink-dim);font-weight:700;font-size:1.02rem}
+  #gisWallBtn{display:flex;justify-content:center;margin:20px 0 6px;min-height:48px;position:relative;z-index:1}
+  #gisWallBtn iframe{border-radius:12px}
+  .auth-msg{
+    display:none;margin:12px auto 0;max-width:30rem;padding:10px 16px;border-radius:14px;
+    background:rgba(255,90,90,.12);border:1.5px solid rgba(255,90,90,.55);
+    font-weight:700;font-size:.98rem;
+  }
+  .config-note{
+    display:none;margin:14px auto 0;max-width:30rem;padding:14px 18px;border-radius:16px;
+    background:rgba(255,176,32,.12);border:2px dashed rgba(255,176,32,.65);
+    font-weight:700;font-size:1rem;text-align:left;
+  }
+  .gis-error{
+    display:none;margin:14px auto 0;max-width:30rem;padding:14px 18px;border-radius:16px;
+    background:rgba(255,90,90,.1);border:2px solid rgba(255,90,90,.5);
+    font-weight:700;font-size:1rem;
+  }
+  .gis-error button{
+    margin-top:10px;font-family:"Baloo 2",cursive;font-size:1.05rem;font-weight:800;cursor:pointer;
+    background:linear-gradient(180deg,#ffc44d,var(--accent));color:var(--accent-ink);
+    border:none;border-radius:12px;padding:10px 22px;min-height:48px;
+  }
+  .wall .tiny{margin:14px auto 0;max-width:28rem;color:var(--ink-dim);font-size:.9rem;font-weight:600}
   .hero{
     margin:14px 0 16px;background:linear-gradient(180deg,var(--card),var(--bg-soft));
     border:2px solid var(--line);border-radius:28px;padding:24px 20px;
@@ -176,6 +235,7 @@
     #results{grid-template-columns:1fr 1fr;gap:12px}
     .card h3{font-size:.98rem}
     .watch{font-size:1.1rem;min-height:52px;padding:12px}
+    #userChip{max-width:130px;font-size:.85rem}
   }
   @media (max-width:380px){ #results{grid-template-columns:1fr} }
   @media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} }
@@ -191,30 +251,50 @@
         <p>One search for YouTube &amp; Disney+</p>
       </div>
     </div>
-    <button id="themeBtn" aria-label="Switch light and dark mode" title="Light / dark mode">🌙</button>
+    <div class="top-right">
+      <div id="userArea" hidden>
+        <span id="userChip" title="Signed in"></span>
+        <button id="signOutBtn" type="button">Sign out</button>
+      </div>
+      <button id="themeBtn" aria-label="Switch light and dark mode" title="Light / dark mode">🌙</button>
+    </div>
   </header>
 
-  <section class="hero">
-    <h2>What do you want to <span class="hl">watch?</span> 🍿</h2>
-    <p>Type once — we check <b>📺 YouTube</b> and <b>✨ Disney+</b> together.</p>
-    <div class="searchbar">
-      <input id="q" type="search" placeholder="Try &quot;Bluey&quot; or &quot;funny cats&quot;…" aria-label="Search YouTube and Disney+ together" autocomplete="off" enterkeyhint="search">
-      <button id="searchBtn" type="button">Search 🔍</button>
-    </div>
+  <section id="wall" class="wall" aria-label="Sign in to search">
+    <div class="rocket" aria-hidden="true">🚀</div>
+    <h2>Sign in with Google <span class="hl">to search</span> 🍿</h2>
+    <p class="why">One tap to start — so Dad knows who&rsquo;s watching. 👀</p>
+    <div id="gisWallBtn" aria-label="Sign in with Google"></div>
+    <div id="authMsg" class="auth-msg" role="status"></div>
+    <div id="configNote" class="config-note" role="note"></div>
+    <div id="gisError" class="gis-error" role="alert"></div>
+    <p class="tiny">We only use your name to say hi and to sign the note to Dad. 💌</p>
   </section>
 
-  <div class="how" aria-label="How this works">
-    <b>How this works 🪄</b>
-    <ol>
-      <li>Search once above — YouTube and Disney+ results appear together.</li>
-      <li>Tap <b>▶ Watch</b> — the page opens in a new tab for the allow prompt.</li>
-      <li>Dad is emailed automatically — no extra button needed. 💌</li>
-    </ol>
-  </div>
+  <div id="app" hidden>
+    <section class="hero">
+      <h2 id="hello">What do you want to <span class="hl">watch?</span> 🍿</h2>
+      <p>Type once — we check <b>📺 YouTube</b> and <b>✨ Disney+</b> together.</p>
+      <div class="searchbar">
+        <input id="q" type="search" placeholder="Try &quot;Bluey&quot; or &quot;funny cats&quot;…" aria-label="Search YouTube and Disney+ together" autocomplete="off" enterkeyhint="search">
+        <button id="searchBtn" type="button">Search 🔍</button>
+      </div>
+    </section>
 
-  <div id="rankNote" role="note"></div>
-  <div id="status" class="big">Type something and hit Search! 🎉</div>
-  <div id="results" aria-live="polite"></div>
+    <div class="how" aria-label="How this works">
+      <b>How this works 🪄</b>
+      <ol>
+        <li>You&rsquo;re signed in — we know who&rsquo;s picking. 👋</li>
+        <li>Search once above — YouTube and Disney+ results appear together.</li>
+        <li>Tap <b>▶ Watch</b> — the page opens in a new tab for the allow prompt.</li>
+        <li>Dad is emailed automatically — no extra button needed. 💌</li>
+      </ol>
+    </div>
+
+    <div id="rankNote" role="note"></div>
+    <div id="status" class="big">Type something and hit Search! 🎉</div>
+    <div id="results" aria-live="polite"></div>
+  </div>
 
   <footer>Made for cozy couch mission control 🛋️✨</footer>
 </div>
@@ -230,9 +310,26 @@ var statusEl = document.getElementById("status");
 var resultsEl = document.getElementById("results");
 var rankNote = document.getElementById("rankNote");
 var toastEl = document.getElementById("toast");
+var wallEl = document.getElementById("wall");
+var appEl = document.getElementById("app");
+var userArea = document.getElementById("userArea");
+var userChip = document.getElementById("userChip");
+var signOutBtn = document.getElementById("signOutBtn");
+var gisWallBtn = document.getElementById("gisWallBtn");
+var authMsg = document.getElementById("authMsg");
+var configNote = document.getElementById("configNote");
+var gisError = document.getElementById("gisError");
+var helloEl = document.getElementById("hello");
 var debounce = null;
 var lastQuery = "";
 var toastTimer = null;
+var lastItems = [];
+
+var CRED_KEY = "syft-credential";
+var credential = null; // Google ID token, memory only + sessionStorage
+var googleClientId = "";
+var gisReady = false;
+var gisLoading = false;
 
 function getSavedTheme() {
   try { return localStorage.getItem("syft-theme"); } catch (e) { return null; }
@@ -251,6 +348,8 @@ themeBtn.addEventListener("click", function () {
   var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
   setTheme(next);
   try { localStorage.setItem("syft-theme", next); } catch (e) {}
+  if (!appEl.hidden) return; // button only visible on the wall; re-render it for the new theme
+  renderGisButton();
 });
 
 function showToast(msg) {
@@ -259,6 +358,209 @@ function showToast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 3600);
 }
+
+// Display name only — decoded client-side for a friendly hello, never trusted for auth.
+function displayNameFromCredential(cred) {
+  try {
+    var parts = String(cred).split(".");
+    if (parts.length < 2) return null;
+    var b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    while (b64.length % 4) b64 += "=";
+    var payload = JSON.parse(atob(b64));
+    var first = payload.given_name || String(payload.name || "").split(" ")[0] || "";
+    return { first: first, picture: payload.picture || "" };
+  } catch (e) { return null; }
+}
+
+function setSession(cred) {
+  credential = cred;
+  try { sessionStorage.setItem(CRED_KEY, cred); } catch (e) {}
+}
+
+function clearSession() {
+  credential = null; // clear memory
+  try { sessionStorage.removeItem(CRED_KEY); } catch (e) {} // clear reload-persisted copy
+}
+
+function showWall(msg) {
+  appEl.hidden = true;
+  wallEl.hidden = false;
+  userArea.hidden = true;
+  if (msg) {
+    authMsg.textContent = msg;
+    authMsg.style.display = "block";
+  } else {
+    authMsg.textContent = "";
+    authMsg.style.display = "none";
+  }
+}
+
+function showApp(first, picture) {
+  wallEl.hidden = true;
+  appEl.hidden = false;
+  userArea.hidden = false;
+  authMsg.textContent = "";
+  authMsg.style.display = "none";
+  var hello = "What do you want to <span class=\"hl\">watch?</span> 🍿";
+  if (first) {
+    hello = "Hi, " + escapeHtml(first) + "! What do you want to <span class=\"hl\">watch?</span> 🍿";
+    var chip = "👋 Hi, " + first;
+    userChip.textContent = chip;
+    if (picture) {
+      userChip.textContent = "";
+      var img = document.createElement("img");
+      img.src = picture;
+      img.alt = "";
+      img.referrerPolicy = "no-referrer";
+      var span = document.createElement("span");
+      span.textContent = "Hi, " + first;
+      userChip.appendChild(img);
+      userChip.appendChild(span);
+    }
+  } else {
+    userChip.textContent = "👋 Hi there!";
+  }
+  helloEl.innerHTML = hello;
+}
+
+function handleSessionExpired() {
+  clearSession();
+  resultsEl.innerHTML = "";
+  if (rankNote) rankNote.style.display = "none";
+  showWall("Session expired — please sign in again 👋");
+  renderGisButton();
+  showToast("Session expired — please sign in again 🔐");
+}
+
+function onCredential(response) {
+  var cred = response && response.credential;
+  if (!cred) {
+    showWall("Hmm, that sign-in didn't go through — try again! 🌀");
+    return;
+  }
+  setSession(cred);
+  var who = displayNameFromCredential(cred);
+  showApp(who && who.first, who && who.picture);
+  showToast(who && who.first ? ("Hi, " + who.first + "! Tap Search to start 🎉") : "Signed in! Tap Search to start 🎉");
+  if (input) input.focus();
+}
+
+signOutBtn.addEventListener("click", function () {
+  clearSession(); // memory + sessionStorage both cleared
+  lastQuery = "";
+  lastItems = [];
+  resultsEl.innerHTML = "";
+  if (rankNote) rankNote.style.display = "none";
+  if (statusEl) { statusEl.textContent = "Type something and hit Search! 🎉"; statusEl.classList.add("big"); }
+  if (input) input.value = "";
+  showWall("Signed out — see you soon! 👋");
+  renderGisButton();
+});
+
+function renderGisButton() {
+  gisWallBtn.innerHTML = "";
+  gisError.style.display = "none";
+  gisError.innerHTML = "";
+  if (!googleClientId) return; // setup note handles this case
+  if (!gisReady || !window.google || !window.google.accounts) { showGisError(); return; }
+  try {
+    window.google.accounts.id.initialize({ client_id: googleClientId, callback: onCredential, auto_select: false, cancel_on_tap_outside: true });
+    var dark = root.getAttribute("data-theme") !== "light";
+    window.google.accounts.id.renderButton(gisWallBtn, { type: "standard", theme: dark ? "filled_black" : "outline", size: "large", text: "signin_with", shape: "pill", logo_alignment: "left" });
+  } catch (e) { showGisError(); }
+}
+
+function showGisError() {
+  if (googleClientId && gisReady) return;
+  if (!googleClientId) return;
+  gisError.style.display = "block";
+  gisError.innerHTML = "";
+  var msg = document.createElement("div");
+  msg.textContent = "Google sign-in couldn't load (offline or blocked). Check your connection and try again. 🛰️";
+  var btn = document.createElement("button");
+  btn.type = "button";
+  btn.textContent = "Try again 🔄";
+  btn.addEventListener("click", function () { bootAuth(); });
+  gisError.appendChild(msg);
+  gisError.appendChild(btn);
+}
+
+function loadGisScript() {
+  return new Promise(function (resolve, reject) {
+    if (window.google && window.google.accounts && window.google.accounts.id) { resolve(); return; }
+    if (gisLoading) {
+      var iv = setInterval(function () {
+        if (window.google && window.google.accounts && window.google.accounts.id) { clearInterval(iv); resolve(); }
+      }, 200);
+      setTimeout(function () { clearInterval(iv); reject(new Error("still loading")); }, 15000);
+      return;
+    }
+    gisLoading = true;
+    var s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client";
+    s.async = true;
+    s.defer = true;
+    s.onload = function () { gisLoading = false; resolve(); };
+    s.onerror = function () { gisLoading = false; reject(new Error("gis blocked")); };
+    document.head.appendChild(s);
+    setTimeout(function () {
+      if (!(window.google && window.google.accounts && window.google.accounts.id)) {
+        gisLoading = false;
+        reject(new Error("gis timeout"));
+      }
+    }, 15000);
+  });
+}
+
+async function bootAuth() {
+  gisError.style.display = "none";
+  gisError.innerHTML = "";
+  configNote.style.display = "none";
+  configNote.textContent = "";
+  var clientId = "";
+  try {
+    var r = await fetch("/api/config");
+    if (r.ok) {
+      var data = await r.json();
+      clientId = (data && data.googleClientId) || "";
+    }
+  } catch (e) { clientId = ""; }
+  if (!clientId) {
+    googleClientId = "";
+    gisWallBtn.innerHTML = "";
+    configNote.style.display = "block";
+    configNote.textContent = "🔧 Search isn't set up yet — Dad needs to add the Google sign-in ID first. Check back soon! 🚀";
+    if (credential) { clearSession(); showWall(null); configNote.style.display = "block"; configNote.textContent = "🔧 Search isn't set up yet — Dad needs to add the Google sign-in ID first. Check back soon! 🚀"; }
+    return;
+  }
+  googleClientId = clientId;
+  try {
+    await loadGisScript();
+    gisReady = true;
+    if (wallEl.hidden === false || !credential) renderGisButton();
+    else renderGisButton();
+  } catch (e) {
+    gisReady = false;
+    showGisError();
+  }
+}
+
+// Restore a signed-in session so a reload doesn't re-prompt.
+(function restore() {
+  try {
+    var saved = sessionStorage.getItem(CRED_KEY);
+    if (saved) {
+      var who = displayNameFromCredential(saved);
+      if (who && (who.first || who.picture)) {
+        credential = saved;
+        showApp(who.first, who.picture);
+      } else if (saved.split(".").length === 3) {
+        credential = saved;
+        showApp("", "");
+      }
+    }
+  } catch (e) {}
+})();
 
 input.addEventListener("input", function () {
   clearTimeout(debounce);
@@ -280,6 +582,11 @@ function setLoading(q) {
 }
 
 async function doSearch() {
+  if (!credential) {
+    showWall("Please sign in first to search 🔐");
+    showToast("Please sign in first 🔐");
+    return;
+  }
   var q = input.value.trim();
   resultsEl.innerHTML = "";
   rankNote.style.display = "none";
@@ -293,7 +600,8 @@ async function doSearch() {
   statusEl.classList.remove("big");
   setLoading(q);
   try {
-    var r = await fetch("/api/search?q=" + encodeURIComponent(q));
+    var r = await fetch("/api/search?q=" + encodeURIComponent(q), { headers: { "Authorization": "Bearer " + credential } });
+    if (r.status === 401) { handleSessionExpired(); return; }
     if (!r.ok) throw new Error("Search hiccup (code " + r.status + ")");
     var data = await r.json();
     if (q !== lastQuery) return; // a newer search started; ignore stale reply
@@ -383,20 +691,15 @@ window.thumbFail = function (img, i) {
   img.replaceWith(div);
 };
 
-// Latest ranked results, so the Watch handler can find the clicked item.
-var lastItems = [];
-
 window.onWatch = function (event, i) {
   var item = lastItems[i] || {};
   var url = item.watchUrl || "";
   if (!url) { event.preventDefault(); showToast("😢 Hmm, that link is missing. Try another one!"); return false; }
+  if (!credential) { event.preventDefault(); showWall("Please sign in first to search 🔐"); showToast("Please sign in first 🔐"); return false; }
   // Fire-and-forget: tell Dad by email, but never block opening the page.
   try {
-    fetch("/api/notify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: item.title || "Untitled", url: url, source: item.source || "youtube" })
-    }).then(function (res) {
+    fetch("/api/notify", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + credential }, body: JSON.stringify({ title: item.title || "Untitled", url: url, source: item.source || "youtube" }) }).then(function (res) {
+      if (res.status === 401) { handleSessionExpired(); return; }
       if (res.ok) { showToast("✅ Dad was emailed!"); }
       else { showToast("▶ Opened! (Dad email still being set up)"); }
     }).catch(function () {
@@ -414,6 +717,8 @@ function escapeHtml(s) {
   });
 }
 function escapeAttr(s) { return escapeHtml(s); }
+
+bootAuth();
 </script>
 </body>
 </html>

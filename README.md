@@ -1,6 +1,22 @@
 # Syft Watching
 
-Kid-friendly search page for YouTube + Disney+. No login, no build step, no dependencies.
+Kid-friendly search page for YouTube + Disney+. Google login required, no build step, no dependencies.
+
+## Auth (Google login)
+
+`GET /api/search` and `POST /api/notify` require
+`Authorization: Bearer <Google ID token>`. The token is verified server-side
+(RS256 against `https://www.googleapis.com/oauth2/v3/certs`, issuer
+`https://accounts.google.com` / `accounts.google.com`, mandatory-future `exp`,
+audience = our client ID). Missing/invalid tokens get
+401 `{"error":"login required"}`.
+
+`GET /api/config` → `{"googleClientId": "<client ID>"}` (always 200; public
+value used by the login button).
+
+Required Pages env var (dashboard → Settings → Environment variables):
+
+- `GOOGLE_CLIENT_ID` (OAuth client ID; audience check + served by `/api/config`)
 
 ## How search → watch → allow works
 
@@ -35,11 +51,17 @@ Pages project name: `syft-watching` (serves `public/` + `functions/`).
 - `GET /api/search?q=` → `{"results":[{"source":"youtube"|"disney","title","year","type","thumbnail","watchUrl"}]}`
   (combined YouTube + Disney results, ranked exact > prefix > substring with a
   Disney+ bump, deduped by watchUrl, capped at 20, cached 1h).
-- `GET /api/youtube?q=` → YouTube-only results (`videoId/title/channel/thumbnail/watchUrl`).
-- `GET /api/disney?q=` → Disney+-oriented results (`title/year/type/thumbnail/browseUrl/playUrl`).
+  Requires Google login (401 `{"error":"login required"}` without a valid Bearer token).
+- `GET /api/config` → `{"googleClientId": "<client ID>"}` (always 200).
 - `POST /api/notify` with JSON `{"title","url","source"}` → sends a
-  `Judah watched: <title>` email via Resend. Returns `{ok:true, id}` on success,
+  `<FirstName> watched: <title>` email via Resend, where `<FirstName>` is the
+  verified Google token's first name (fallback: part of the verified email
+  before `@`, then `"Someone"` — never a client-sent name). Returns
+  `{ok:true, id}` on success, 401 without a valid Bearer token,
   or 503 `{"error":"email not configured"}` when no API key is set.
+
+The old `GET /api/youtube` and `GET /api/disney` endpoints are deleted
+(superseded by gated `/api/search`; they must not remain as ungated bypasses).
 
 ## Email notifications (Resend)
 
@@ -53,6 +75,7 @@ Optional Pages vars (dashboard → Settings → Environment variables):
 
 - `DAD_EMAIL` (required — Dad's address; no default in code)
 - `FROM_EMAIL` (default `Syft Watching <onboarding@resend.dev>`)
+- `GOOGLE_CLIENT_ID` (required — Google OAuth client ID for login; see Auth above)
 
 Note: JustWatch HTML (`justwatch.com/us/search`) is the Disney play-URL resolver —
 Disney+ browse entity UUIDs scraped from it become `disneyplus.com/play/<uuid>` links.
