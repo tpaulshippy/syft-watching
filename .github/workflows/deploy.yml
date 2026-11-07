@@ -1,0 +1,22 @@
+# Required GitHub secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
+# Pages project name: syft-watching
+# Custom domain: watch.syftlearning.app — wire via Cloudflare Pages dashboard:
+# Pages project → Custom domains → Set up a custom domain → enter watch.syftlearning.app
+# (then add the displayed CNAME/validation record where DNS is managed; DO NOT change DNS here)
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy public --project-name=syft-watching --branch=main
