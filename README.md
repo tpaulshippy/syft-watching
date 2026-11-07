@@ -54,7 +54,7 @@ Pages project name: `syft-watching` (serves `public/` + `functions/`).
   Requires Google login (401 `{"error":"login required"}` without a valid Bearer token).
 - `GET /api/config` → `{"googleClientId": "<client ID>"}` (always 200).
 - `POST /api/notify` with JSON `{"title","url","source"}` → sends a
-  `<FirstName> watched: <title>` email via Resend, where `<FirstName>` is the
+  `<FirstName> wants to watch: <title>` email via Resend, where `<FirstName>` is the
   verified Google token's first name (fallback: part of the verified email
   before `@`, then `"Someone"` — never a client-sent name). Returns
   `{ok:true, id}` on success, 401 without a valid Bearer token,

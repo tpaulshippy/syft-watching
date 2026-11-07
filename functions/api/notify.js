@@ -31,7 +31,7 @@ export async function onRequestPost({ request, env }) {
       body: JSON.stringify({
         from,
         to: [to],
-        subject: name + " watched: " + title,
+        subject: name + " wants to watch: " + title,
         text: title + " (" + source + ")\n" + url + "\n" + new Date().toISOString(),
       }),
       signal: AbortSignal.timeout(8000),
