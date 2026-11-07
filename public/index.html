@@ -1,152 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Player - NewTube</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #1a1a1a;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .header {
-            background: #0f0f0f;
-            padding: 12px 24px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            border-bottom: 1px solid #333;
-        }
-        
-        .header h1 {
-            color: #fff;
-            font-size: 20px;
-            font-weight: 500;
-        }
-        
-        .header .logo {
-            color: #f00;
-            font-size: 24px;
-        }
-        
-        .player-container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 24px;
-            background: #0f0f0f;
-        }
-        
-        .video-wrapper {
-            width: 100%;
-            max-width: 1280px;
-            position: relative;
-        }
-        
-        #player {
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            background: #000;
-        }
-        
-        .video-info {
-            padding: 16px 24px;
-            background: #1a1a1a;
-        }
-        
-        .video-title {
-            color: #fff;
-            font-size: 18px;
-            font-weight: 500;
-            margin-bottom: 8px;
-        }
-        
-        .video-meta {
-            color: #aaa;
-            font-size: 14px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Syft Watching — Kid Search</title>
+<style>
+*{box-sizing:border-box;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{margin:0;background:#f4f6ff;color:#222;min-height:100vh}
+header{background:#4a6cf7;color:#fff;padding:24px 16px;text-align:center}
+header h1{margin:0;font-size:1.8rem}
+header p{margin:6px 0 0;opacity:.9}
+main{max-width:860px;margin:0 auto;padding:20px 16px 60px}
+.tabs{display:flex;gap:12px;justify-content:center;margin:20px 0}
+.tabs button{font-size:1.4rem;padding:14px 28px;border-radius:16px;border:3px solid #4a6cf7;background:#fff;cursor:pointer;font-weight:700}
+.tabs button.active{background:#4a6cf7;color:#fff}
+.searchrow{display:flex;gap:8px;margin:8px 0 20px}
+.searchrow input{flex:1;font-size:1.3rem;padding:14px 16px;border-radius:14px;border:3px solid #ccc}
+.searchrow button{font-size:1.3rem;padding:14px 22px;border-radius:14px;border:none;background:#22b573;color:#fff;font-weight:800;cursor:pointer}
+.how{background:#fff8d6;border:2px dashed #d9a400;border-radius:12px;padding:12px 16px;font-size:1rem;margin-bottom:20px}
+#status{text-align:center;font-size:1.2rem;margin:20px;color:#555}
+#results{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.12);display:flex;flex-direction:column}
+.card img{width:100%;aspect-ratio:16/9;object-fit:cover;background:#ddd}
+.card .body{padding:12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.card h3{margin:0;font-size:1.05rem;line-height:1.3}
+.card .meta{color:#666;font-size:.9rem}
+.card .btns{display:flex;gap:8px;margin-top:auto;padding-top:8px}
+.btn{display:inline-block;text-align:center;flex:1;padding:12px 8px;border-radius:12px;font-weight:800;text-decoration:none;font-size:1.05rem}
+.watch{background:#e62117;color:#fff}
+.ask{background:#fff;border:2px solid #4a6cf7;color:#4a6cf7}
+</style>
 </head>
 <body>
-    <div class="header">
-        <span class="logo">▶</span>
-        <h1>Syft Watching</h1>
-    </div>
-    
-    <div class="player-container">
-        <div class="video-wrapper">
-            <div id="player"></div>
-        </div>
-    </div>
-    
-    <div class="video-info">
-        <div class="video-title" id="videoTitle">Loading...</div>
-        <div class="video-meta" id="videoMeta"></div>
-    </div>
-
-    <script>
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-        
-        var player;
-        var videoId = 'VIDEO_ID_PLACEHOLDER';
-        
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                videoId: videoId,
-                playerVars: {
-                    'autoplay': 1,
-                    'controls': 1,
-                    'rel': 0,
-                    'showinfo': 0,
-                    'modestbranding': 1,
-                    'playsinline': 1,
-                    'loop': 0,
-                    'origin': 'ORIGIN_PLACEHOLDER'
-                },
-                events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange,
-                    'onError': onPlayerError
-                }
-            });
-        }
-        
-        function onPlayerReady(event) {
-            var title = player.getVideoData();
-            if (title && title.title) {
-                document.getElementById('videoTitle').textContent = title.title;
-            }
-        }
-        
-        function onPlayerStateChange(event) {
-            console.log('State:', event.data);
-        }
-        
-        function onPlayerError(event) {
-            console.log('Error:', event.data);
-            var errorMessages = {
-                2: 'Invalid video ID',
-                5: 'HTML5 player error',
-                100: 'Video not found',
-                101: 'Embedding disabled by owner',
-                150: 'Embedding disabled by owner'
-            };
-            document.getElementById('videoTitle').textContent = 'Error: ' + (errorMessages[event.data] || 'Unknown error (' + event.data + ')');
-        }
-    </script>
+<header>
+<h1>🔍 Syft Watching</h1>
+<p>Search YouTube &amp; Disney+ safely</p>
+</header>
+<main>
+<div class="tabs">
+<button id="tab-youtube" class="active" onclick="setTab('youtube')">📺 YouTube</button>
+<button id="tab-disney" onclick="setTab('disney')">✨ Disney+</button>
+</div>
+<div class="searchrow">
+<input id="q" type="search" placeholder="Search for a show or video…" aria-label="Search">
+<button onclick="doSearch()">Search 🔍</button>
+</div>
+<div class="how">
+<b>How this works:</b> 1️⃣ Search above. 2️⃣ Click <b>▶ Watch</b> to open the video/show in a new tab.
+3️⃣ If the page is blocked, click <b>✉️ Ask Dad</b> to email Dad the title + link so he can allow that page.
+</div>
+<div id="status">Type something and hit Search! 🎉</div>
+<div id="results"></div>
+</main>
+<script>
+const DAD_EMAIL = "dad@example.com"; // <-- change to Dad's email address
+let tab = "youtube";
+let debounce = null;
+function setTab(t){
+  tab = t;
+  document.getElementById("tab-youtube").classList.toggle("active", t === "youtube");
+  document.getElementById("tab-disney").classList.toggle("active", t === "disney");
+  doSearch();
+}
+document.getElementById("q").addEventListener("input", () => {
+  clearTimeout(debounce);
+  debounce = setTimeout(doSearch, 500);
+});
+document.getElementById("q").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { clearTimeout(debounce); doSearch(); }
+});
+async function doSearch(){
+  const q = document.getElementById("q").value.trim();
+  const status = document.getElementById("status");
+  const results = document.getElementById("results");
+  results.innerHTML = "";
+  if (!q) { status.textContent = "Type something and hit Search! 🎉"; return; }
+  status.textContent = "Searching… ⏳";
+  try {
+    const r = await fetch("/api/" + tab + "?q=" + encodeURIComponent(q));
+    if (!r.ok) throw new Error("Search failed (HTTP " + r.status + ")");
+    const data = await r.json();
+    const items = data.results || [];
+    if (!items.length) { status.textContent = "No results found. Try another search! 🔎"; return; }
+    status.textContent = "";
+    results.innerHTML = items.map(cardHTML).join("");
+  } catch (err) {
+    status.textContent = "Oops! Something went wrong. Try again. 😢 (" + err.message + ")";
+  }
+}
+function cardHTML(item){
+  const title = escapeHtml(item.title || "Untitled");
+  const url = item.watchUrl || item.playUrl;
+  const meta = tab === "youtube"
+    ? escapeHtml(item.channel || "")
+    : escapeHtml([item.type, item.year].filter(Boolean).join(" • "));
+  const thumb = item.thumbnail
+    ? '<img src="' + escapeAttr(item.thumbnail) + '" alt="" loading="lazy">'
+    : '<img alt="No thumbnail">';
+  const subject = encodeURIComponent("Please allow: " + (item.title || ""));
+  const body = encodeURIComponent("Hi Dad,\n\nCan you please allow this page?\n\nTitle: " + (item.title || "") + "\nLink: " + url + "\n\nThanks!");
+  return '<div class="card">' + thumb + '<div class="body"><h3>' + title + '</h3>' +
+    '<div class="meta">' + meta + '</div><div class="btns">' +
+    '<a class="btn watch" href="' + escapeAttr(url) + '" target="_blank" rel="noopener">▶ Watch</a>' +
+    '<a class="btn ask" href="mailto:' + DAD_EMAIL + '?subject=' + subject + '&body=' + body + '">✉️ Ask Dad</a>' +
+    '</div></div></div>';
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function escapeAttr(s){ return escapeHtml(s).replace(/"/g, "&quot;"); }
+</script>
 </body>
 </html>

@@ -1,15 +1,10 @@
 {
-  "name": "newtube",
+  "name": "syft-watching",
   "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
+  "description": "Kid-friendly YouTube + Disney+ search front-end on Cloudflare Pages",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "preview": "node server.js",
+    "check": "node --check functions/api/youtube.js && node --check functions/api/disney.js && node --check server.js && echo OK"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "express": "^5.2.1"
-  }
+  "license": "MIT"
 }
