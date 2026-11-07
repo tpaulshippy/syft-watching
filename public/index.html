@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Syft Watching — Search YouTube &amp; Disney+ Together</title>
+<title>Syft Watching</title>
 <meta name="description" content="One safe search box for YouTube and Disney+. Pick something to watch — Dad gets emailed automatically.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -248,7 +248,6 @@
       <div class="logo" aria-hidden="true">🚀</div>
       <div>
         <h1>Syft Watching</h1>
-        <p>One search for YouTube &amp; Disney+</p>
       </div>
     </div>
     <div class="top-right">
@@ -260,43 +259,28 @@
     </div>
   </header>
 
-  <section id="wall" class="wall" aria-label="Sign in to search">
+  <section id="wall" class="wall" aria-label="Sign in">
     <div class="rocket" aria-hidden="true">🚀</div>
-    <h2>Sign in with Google <span class="hl">to search</span> 🍿</h2>
-    <p class="why">One tap to start — so Dad knows who&rsquo;s watching. 👀</p>
+    <h2>Sign in</h2>
     <div id="gisWallBtn" aria-label="Sign in with Google"></div>
     <div id="authMsg" class="auth-msg" role="status"></div>
     <div id="configNote" class="config-note" role="note"></div>
     <div id="gisError" class="gis-error" role="alert"></div>
-    <p class="tiny">We only use your name to say hi and to sign the note to Dad. 💌</p>
   </section>
 
   <div id="app" hidden>
     <section class="hero">
-      <h2 id="hello">What do you want to <span class="hl">watch?</span> 🍿</h2>
-      <p>Type once — we check <b>📺 YouTube</b> and <b>✨ Disney+</b> together.</p>
+      <h2 id="hello" hidden></h2>
       <div class="searchbar">
-        <input id="q" type="search" placeholder="Try &quot;Bluey&quot; or &quot;funny cats&quot;…" aria-label="Search YouTube and Disney+ together" autocomplete="off" enterkeyhint="search">
-        <button id="searchBtn" type="button">Search 🔍</button>
+        <input id="q" type="search" placeholder="Search…" aria-label="Search" autocomplete="off" enterkeyhint="search">
+        <button id="searchBtn" type="button" aria-label="Search">🔍 Search</button>
       </div>
     </section>
 
-    <div class="how" aria-label="How this works">
-      <b>How this works 🪄</b>
-      <ol>
-        <li>You&rsquo;re signed in — we know who&rsquo;s picking. 👋</li>
-        <li>Search once above — YouTube and Disney+ results appear together.</li>
-        <li>Tap <b>▶ Watch</b> — the page opens in a new tab for the allow prompt.</li>
-        <li>Dad is emailed automatically — no extra button needed. 💌</li>
-      </ol>
-    </div>
-
-    <div id="rankNote" role="note"></div>
-    <div id="status" class="big">Type something and hit Search! 🎉</div>
+    <div id="rankNote" role="note" hidden></div>
+    <div id="status" class="big"></div>
     <div id="results" aria-live="polite"></div>
   </div>
-
-  <footer>Made for cozy couch mission control 🛋️✨</footer>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -401,10 +385,9 @@ function showApp(first, picture) {
   userArea.hidden = false;
   authMsg.textContent = "";
   authMsg.style.display = "none";
-  var hello = "What do you want to <span class=\"hl\">watch?</span> 🍿";
+  var hello = "";
   if (first) {
-    hello = "Hi, " + escapeHtml(first) + "! What do you want to <span class=\"hl\">watch?</span> 🍿";
-    var chip = "👋 Hi, " + first;
+    var chip = first;
     userChip.textContent = chip;
     if (picture) {
       userChip.textContent = "";
@@ -413,35 +396,35 @@ function showApp(first, picture) {
       img.alt = "";
       img.referrerPolicy = "no-referrer";
       var span = document.createElement("span");
-      span.textContent = "Hi, " + first;
+      span.textContent = first;
       userChip.appendChild(img);
       userChip.appendChild(span);
     }
   } else {
-    userChip.textContent = "👋 Hi there!";
+    userChip.textContent = "Hi";
   }
-  helloEl.innerHTML = hello;
+  helloEl.textContent = hello;
 }
 
 function handleSessionExpired() {
   clearSession();
   resultsEl.innerHTML = "";
   if (rankNote) rankNote.style.display = "none";
-  showWall("Session expired — please sign in again 👋");
+  showWall("Signed out — sign in");
   renderGisButton();
-  showToast("Session expired — please sign in again 🔐");
+  showToast("Signed out");
 }
 
 function onCredential(response) {
   var cred = response && response.credential;
   if (!cred) {
-    showWall("Hmm, that sign-in didn't go through — try again! 🌀");
+    showWall("Sign-in failed — retry");
     return;
   }
   setSession(cred);
   var who = displayNameFromCredential(cred);
   showApp(who && who.first, who && who.picture);
-  showToast(who && who.first ? ("Hi, " + who.first + "! Tap Search to start 🎉") : "Signed in! Tap Search to start 🎉");
+  showToast("Signed in");
   if (input) input.focus();
 }
 
@@ -451,9 +434,9 @@ signOutBtn.addEventListener("click", function () {
   lastItems = [];
   resultsEl.innerHTML = "";
   if (rankNote) rankNote.style.display = "none";
-  if (statusEl) { statusEl.textContent = "Type something and hit Search! 🎉"; statusEl.classList.add("big"); }
+  if (statusEl) { statusEl.textContent = ""; statusEl.classList.add("big"); }
   if (input) input.value = "";
-  showWall("Signed out — see you soon! 👋");
+  showWall("Signed out");
   renderGisButton();
 });
 
@@ -476,10 +459,10 @@ function showGisError() {
   gisError.style.display = "block";
   gisError.innerHTML = "";
   var msg = document.createElement("div");
-  msg.textContent = "Google sign-in couldn't load (offline or blocked). Check your connection and try again. 🛰️";
+  msg.textContent = "No internet — retry";
   var btn = document.createElement("button");
   btn.type = "button";
-  btn.textContent = "Try again 🔄";
+  btn.textContent = "Retry";
   btn.addEventListener("click", function () { bootAuth(); });
   gisError.appendChild(msg);
   gisError.appendChild(btn);
@@ -529,8 +512,8 @@ async function bootAuth() {
     googleClientId = "";
     gisWallBtn.innerHTML = "";
     configNote.style.display = "block";
-    configNote.textContent = "🔧 Search isn't set up yet — Dad needs to add the Google sign-in ID first. Check back soon! 🚀";
-    if (credential) { clearSession(); showWall(null); configNote.style.display = "block"; configNote.textContent = "🔧 Search isn't set up yet — Dad needs to add the Google sign-in ID first. Check back soon! 🚀"; }
+    configNote.textContent = "Setup needed — retry later";
+    if (credential) { clearSession(); showWall(null); configNote.style.display = "block"; configNote.textContent = "Setup needed — retry later"; }
     return;
   }
   googleClientId = clientId;
@@ -572,7 +555,7 @@ input.addEventListener("keydown", function (e) {
 searchBtn.addEventListener("click", function () { clearTimeout(debounce); doSearch(); });
 
 function setLoading(q) {
-  statusEl.innerHTML = '<div class="spinner" aria-hidden="true"></div>Looking everywhere for &ldquo;' + escapeHtml(q) + '&rdquo;&hellip; 🕵️';
+  statusEl.innerHTML = '<div class="spinner" aria-hidden="true"></div>Searching…';
   rankNote.style.display = "none";
   var s = "";
   for (var i = 0; i < 4; i++) {
@@ -583,8 +566,8 @@ function setLoading(q) {
 
 async function doSearch() {
   if (!credential) {
-    showWall("Please sign in first to search 🔐");
-    showToast("Please sign in first 🔐");
+    showWall("Sign in first");
+    showToast("Sign in first");
     return;
   }
   var q = input.value.trim();
@@ -592,7 +575,7 @@ async function doSearch() {
   rankNote.style.display = "none";
   if (!q) {
     lastQuery = "";
-    statusEl.textContent = "Type something and hit Search! 🎉";
+    statusEl.textContent = "";
     statusEl.classList.add("big");
     return;
   }
@@ -608,27 +591,18 @@ async function doSearch() {
     var items = (data && data.results) || [];
     if (!items.length) {
       resultsEl.innerHTML = "";
-      statusEl.innerHTML = "Hmm, nothing found for &ldquo;" + escapeHtml(q) + "&rdquo;. 🧭<br>Try a different spelling or a shorter word!";
+      statusEl.textContent = "Nothing found";
       return;
     }
     var ranked = rank(items);
     statusEl.textContent = "";
-    var hasMovies = ranked.some(function (x) { return x.source === "disney"; });
-    var hasVideos = ranked.some(function (x) { return x.source === "youtube"; });
-    if (hasMovies && hasVideos) {
-      rankNote.textContent = "🎬 Movies & shows first, 📺 videos below — all in one list!";
-    } else if (hasMovies) {
-      rankNote.textContent = "✨ Showing Disney+ movies & shows for your search.";
-    } else {
-      rankNote.textContent = "📺 Showing YouTube videos for your search.";
-    }
-    rankNote.style.display = "block";
+    rankNote.style.display = "none";
     lastItems = ranked;
     resultsEl.innerHTML = ranked.map(cardHTML).join("");
   } catch (err) {
     if (q !== lastQuery) return;
     resultsEl.innerHTML = "";
-    statusEl.innerHTML = "Oh no, the search rocket sputtered! 🚀💨<br>Check your internet and try again. <small>(" + escapeHtml(err.message || "oops") + ")</small>";
+    statusEl.textContent = "No internet — retry";
   }
 }
 
@@ -651,8 +625,8 @@ function cardHTML(item, i) {
   if (item.year) metaBits.push(item.year);
   var meta = metaBits.join(" • ");
   var badge = isDisney
-    ? '<span class="badge dz">✨ Disney+</span>'
-    : '<span class="badge yt">📺 YouTube</span>';
+    ? '<span class="badge dz">Disney+</span>'
+    : '<span class="badge yt">YouTube</span>';
   var art;
   if (item.thumbnail) {
     art = '<div class="art">' + badge +
@@ -674,7 +648,7 @@ function fallbackArt(badge, title) {
   var letter = (title || "?").trim().charAt(0).toUpperCase() || "?";
   return '<div class="art fallback">' + badge +
     '<div><div class="letter">' + escapeHtml(letter) + "</div>" +
-    "<small>No preview 🎨</small></div></div>";
+    "<small>No preview</small></div></div>";
 }
 
 // Called from the inline onerror handler when a thumbnail URL breaks.
@@ -686,7 +660,7 @@ window.thumbFail = function (img, i) {
   div.className = "art fallback";
   var badgeHTML = badge ? badge.outerHTML : "";
   var letter = title.trim().charAt(0).toUpperCase() || "?";
-  div.innerHTML = badgeHTML + '<div><div class="letter"></div><small>No preview 🎨</small></div>';
+  div.innerHTML = badgeHTML + '<div><div class="letter"></div><small>No preview</small></div>';
   div.querySelector(".letter").textContent = letter;
   img.replaceWith(div);
 };
@@ -694,19 +668,19 @@ window.thumbFail = function (img, i) {
 window.onWatch = function (event, i) {
   var item = lastItems[i] || {};
   var url = item.watchUrl || "";
-  if (!url) { event.preventDefault(); showToast("😢 Hmm, that link is missing. Try another one!"); return false; }
-  if (!credential) { event.preventDefault(); showWall("Please sign in first to search 🔐"); showToast("Please sign in first 🔐"); return false; }
+  if (!url) { event.preventDefault(); showToast("Link missing"); return false; }
+  if (!credential) { event.preventDefault(); showWall("Sign in first"); showToast("Sign in first"); return false; }
   // Fire-and-forget: tell Dad by email, but never block opening the page.
   try {
     fetch("/api/notify", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + credential }, body: JSON.stringify({ title: item.title || "Untitled", url: url, source: item.source || "youtube" }) }).then(function (res) {
       if (res.status === 401) { handleSessionExpired(); return; }
-      if (res.ok) { showToast("✅ Dad was emailed!"); }
-      else { showToast("▶ Opened! (Dad email still being set up)"); }
+      if (res.ok) { showToast("Sent"); }
+      else { showToast("Opened"); }
     }).catch(function () {
-      showToast("▶ Opened! (Dad email still being set up)");
+      showToast("Opened");
     });
   } catch (e) {
-    showToast("▶ Opened! (Dad email still being set up)");
+    showToast("Opened");
   }
   return true; // let the link open in a new tab
 };
