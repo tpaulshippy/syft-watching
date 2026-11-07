@@ -30,6 +30,34 @@ Required GitHub secrets (repo Settings → Secrets → Actions):
 
 Pages project name: `syft-watching` (serves `public/` + `functions/`).
 
+## API
+
+- `GET /api/search?q=` → `{"results":[{"source":"youtube"|"disney","title","year","type","thumbnail","watchUrl"}]}`
+  (combined YouTube + Disney results, ranked exact > prefix > substring with a
+  Disney+ bump, deduped by watchUrl, capped at 20, cached 1h).
+- `GET /api/youtube?q=` → YouTube-only results (`videoId/title/channel/thumbnail/watchUrl`).
+- `GET /api/disney?q=` → Disney+-oriented results (`title/year/type/thumbnail/browseUrl/playUrl`).
+- `POST /api/notify` with JSON `{"title","url","source"}` → sends a
+  `Judah watched: <title>` email via Resend. Returns `{ok:true, id}` on success,
+  or 503 `{"error":"email not configured"}` when no API key is set.
+
+## Email notifications (Resend)
+
+Required Pages secret:
+
+```sh
+echo $KEY | npx wrangler pages secret put RESEND_API_KEY --project-name=syft-watching
+```
+
+Optional Pages vars (dashboard → Settings → Environment variables):
+
+- `DAD_EMAIL` (default `pshippy@gmail.com`)
+- `FROM_EMAIL` (default `Syft Watching <onboarding@resend.dev>`)
+
+Note: JustWatch HTML (`justwatch.com/us/search`) is the Disney play-URL resolver —
+Disney+ browse entity UUIDs scraped from it become `disneyplus.com/play/<uuid>` links.
+iTunes Search and TVMaze only supply metadata/posters (plus Disney+ search-page links).
+
 ## Custom domain
 
 `watch.syftlearning.app` — in the Cloudflare dashboard go to the Pages project → Custom domains → Set up a custom domain → enter `watch.syftlearning.app`, then add the shown record where DNS is managed.

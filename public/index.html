@@ -1,114 +1,419 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Syft Watching — Kid Search</title>
+<title>Syft Watching — Search YouTube &amp; Disney+ Together</title>
+<meta name="description" content="One safe search box for YouTube and Disney+. Pick something to watch — Dad gets emailed automatically.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-body{margin:0;background:#f4f6ff;color:#222;min-height:100vh}
-header{background:#4a6cf7;color:#fff;padding:24px 16px;text-align:center}
-header h1{margin:0;font-size:1.8rem}
-header p{margin:6px 0 0;opacity:.9}
-main{max-width:860px;margin:0 auto;padding:20px 16px 60px}
-.tabs{display:flex;gap:12px;justify-content:center;margin:20px 0}
-.tabs button{font-size:1.4rem;padding:14px 28px;border-radius:16px;border:3px solid #4a6cf7;background:#fff;cursor:pointer;font-weight:700}
-.tabs button.active{background:#4a6cf7;color:#fff}
-.searchrow{display:flex;gap:8px;margin:8px 0 20px}
-.searchrow input{flex:1;font-size:1.3rem;padding:14px 16px;border-radius:14px;border:3px solid #ccc}
-.searchrow button{font-size:1.3rem;padding:14px 22px;border-radius:14px;border:none;background:#22b573;color:#fff;font-weight:800;cursor:pointer}
-.how{background:#fff8d6;border:2px dashed #d9a400;border-radius:12px;padding:12px 16px;font-size:1rem;margin-bottom:20px}
-#status{text-align:center;font-size:1.2rem;margin:20px;color:#555}
-#results{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
-.card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.12);display:flex;flex-direction:column}
-.card img{width:100%;aspect-ratio:16/9;object-fit:cover;background:#ddd}
-.card .body{padding:12px;display:flex;flex-direction:column;gap:6px;flex:1}
-.card h3{margin:0;font-size:1.05rem;line-height:1.3}
-.card .meta{color:#666;font-size:.9rem}
-.card .btns{display:flex;gap:8px;margin-top:auto;padding-top:8px}
-.btn{display:inline-block;text-align:center;flex:1;padding:12px 8px;border-radius:12px;font-weight:800;text-decoration:none;font-size:1.05rem}
-.watch{background:#e62117;color:#fff}
-.ask{background:#fff;border:2px solid #4a6cf7;color:#4a6cf7}
+  :root{
+    --bg:#0b1226;
+    --bg-soft:#111a36;
+    --card:#182244;
+    --card-2:#1f2c55;
+    --ink:#f4f6ff;
+    --ink-dim:#aeb8d8;
+    --line:rgba(255,255,255,.1);
+    --accent:#ffb020;
+    --accent-ink:#231600;
+    --teal:#3ddad7;
+    --yt:#ff5a5a;
+    --dz:#5aa8ff;
+    --radius:22px;
+    --shadow:0 12px 32px rgba(0,0,0,.45);
+  }
+  [data-theme="light"]{
+    --bg:#eef2ff;
+    --bg-soft:#ffffff;
+    --card:#ffffff;
+    --card-2:#f3f5ff;
+    --ink:#16204a;
+    --ink-dim:#5a6694;
+    --line:rgba(22,32,74,.12);
+    --accent:#ff9d0a;
+    --accent-ink:#231600;
+    --shadow:0 10px 28px rgba(35,50,140,.16);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;min-height:100vh;color:var(--ink);
+    font-family:"Nunito",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(700px 320px at 15% -40px, rgba(255,176,32,.22), transparent 60%),
+      radial-gradient(800px 380px at 90% -60px, rgba(61,218,215,.18), transparent 60%),
+      radial-gradient(600px 500px at 50% 120%, rgba(90,168,255,.12), transparent 60%),
+      var(--bg);
+    transition:background .3s ease,color .3s ease;
+  }
+  [data-theme="light"] body{background:
+      radial-gradient(700px 320px at 15% -40px, rgba(255,176,32,.28), transparent 60%),
+      radial-gradient(800px 380px at 90% -60px, rgba(61,218,215,.22), transparent 60%),
+      var(--bg)}
+  .wrap{max-width:960px;margin:0 auto;padding:0 18px 90px}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 0 6px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{
+    width:52px;height:52px;border-radius:18px;display:grid;place-items:center;font-size:1.7rem;flex:none;
+    background:linear-gradient(135deg,#ffb020,#ff6b6b 60%,#7c5cff);
+    box-shadow:0 8px 22px rgba(255,107,107,.4);
+  }
+  .brand h1{font-family:"Baloo 2",cursive;font-size:1.55rem;margin:0;line-height:1.05;letter-spacing:.2px}
+  .brand p{margin:2px 0 0;color:var(--ink-dim);font-size:.95rem;font-weight:600}
+  #themeBtn{
+    border:2px solid var(--line);background:var(--card);color:var(--ink);
+    font-size:1.25rem;width:56px;height:56px;border-radius:18px;cursor:pointer;flex:none;
+    box-shadow:var(--shadow);transition:transform .15s ease;
+  }
+  #themeBtn:active{transform:scale(.93)}
+  .hero{
+    margin:14px 0 16px;background:linear-gradient(180deg,var(--card),var(--bg-soft));
+    border:2px solid var(--line);border-radius:28px;padding:24px 20px;
+    box-shadow:var(--shadow);text-align:center;position:relative;overflow:hidden;
+  }
+  .hero::after{
+    content:"";position:absolute;inset:auto -60px -90px -60px;height:150px;
+    background:radial-gradient(closest-side,rgba(255,176,32,.25),transparent);
+    pointer-events:none;
+  }
+  .hero h2{font-family:"Baloo 2",cursive;margin:0;font-size:clamp(1.5rem,4.5vw,2.2rem);line-height:1.1}
+  .hero h2 .hl{color:var(--accent)}
+  .hero p{margin:8px auto 0;max-width:34rem;color:var(--ink-dim);font-weight:600;font-size:1.02rem}
+  .searchbar{
+    display:flex;gap:10px;margin-top:16px;position:relative;z-index:1;
+    flex-direction:row;
+  }
+  .searchbar input{
+    flex:1;min-width:0;font-size:1.2rem;font-weight:700;color:var(--ink);
+    background:var(--bg);border:3px solid var(--line);border-radius:18px;
+    padding:16px 18px;outline:none;
+  }
+  .searchbar input:focus{border-color:var(--accent)}
+  .searchbar input::placeholder{color:var(--ink-dim);font-weight:600}
+  .searchbar button{
+    font-family:"Baloo 2",cursive;font-size:1.2rem;font-weight:800;cursor:pointer;
+    background:linear-gradient(180deg,#ffc44d,var(--accent));color:var(--accent-ink);
+    border:none;border-radius:18px;padding:16px 26px;min-height:60px;min-width:132px;
+    box-shadow:0 8px 20px rgba(255,176,32,.35);transition:transform .15s ease;
+  }
+  .searchbar button:active{transform:scale(.96)}
+  .how{
+    margin:14px 0 6px;border-radius:18px;padding:14px 16px;font-size:1rem;font-weight:600;
+    background:rgba(255,176,32,.12);border:2px dashed rgba(255,176,32,.65);
+  }
+  .how b{font-weight:800}
+  .how ol{margin:8px 0 0;padding-left:1.3rem;display:grid;gap:4px}
+  #rankNote{
+    display:none;margin:18px 2px 10px;padding:10px 14px;border-radius:14px;
+    background:rgba(61,218,215,.1);border:1.5px solid rgba(61,218,215,.4);
+    font-weight:700;font-size:.98rem;
+  }
+  #status{text-align:center;color:var(--ink-dim);font-weight:700;font-size:1.12rem;margin:26px 8px;line-height:1.5}
+  #status.big{font-size:1.25rem}
+  .spinner{
+    width:46px;height:46px;margin:0 auto 10px;border-radius:50%;
+    border:5px solid var(--line);border-top-color:var(--accent);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #results{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+  .card{
+    background:linear-gradient(180deg,var(--card),var(--card-2));
+    border:2px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    box-shadow:var(--shadow);display:flex;flex-direction:column;
+    animation:rise .35s ease backwards;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .art{position:relative;aspect-ratio:16/9;overflow:hidden;background:#0e1630}
+  .art img{width:100%;height:100%;object-fit:cover;display:block}
+  .art.fallback{display:grid;place-items:center;text-align:center;padding:10px;
+    background:linear-gradient(135deg,#2b3a7d,#6d3fd4 45%,#ff6b6b 100%)}
+  [data-theme="light"] .art.fallback{background:linear-gradient(135deg,#7c9bff,#b07cff 45%,#ff8a5c 100%)}
+  .art.fallback .letter{
+    font-family:"Baloo 2",cursive;font-size:3rem;font-weight:800;color:#fff;
+    width:74px;height:74px;border-radius:50%;display:grid;place-items:center;
+    background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.55);
+  }
+  .art.fallback small{display:block;color:rgba(255,255,255,.92);font-weight:700;font-size:.8rem;margin-top:6px}
+  .badge{
+    position:absolute;top:10px;left:10px;font-size:.82rem;font-weight:800;
+    padding:6px 12px;border-radius:999px;backdrop-filter:blur(4px);
+  }
+  .badge.yt{background:rgba(20,0,0,.72);color:#ffb3b3;border:1.5px solid rgba(255,90,90,.8)}
+  .badge.dz{background:rgba(0,12,40,.72);color:#c4dcff;border:1.5px solid rgba(90,168,255,.8)}
+  .card .body{padding:14px 14px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .card h3{margin:0;font-size:1.08rem;line-height:1.3;font-weight:800}
+  .meta{color:var(--ink-dim);font-size:.92rem;font-weight:700}
+  .watch{
+    display:block;text-align:center;margin-top:10px;text-decoration:none;
+    font-family:"Baloo 2",cursive;font-size:1.25rem;font-weight:800;
+    background:linear-gradient(180deg,#3ddad7,#23b3b0);color:#062b2a;
+    border-radius:15px;padding:14px;min-height:56px;
+    box-shadow:0 6px 16px rgba(61,218,215,.3);transition:transform .15s ease;
+  }
+  .watch:active{transform:scale(.97)}
+  #toast{
+    position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120px);
+    background:#101c3f;color:#fff;border:2px solid rgba(61,218,215,.6);
+    padding:14px 20px;border-radius:16px;font-weight:800;font-size:1.02rem;
+    box-shadow:0 12px 30px rgba(0,0,0,.5);opacity:0;transition:all .3s ease;
+    max-width:min(92vw,480px);text-align:center;z-index:50;
+  }
+  [data-theme="light"] #toast{background:#16204a}
+  #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  footer{margin-top:30px;text-align:center;color:var(--ink-dim);font-weight:600;font-size:.92rem}
+  .skeleton{border-radius:var(--radius);background:linear-gradient(180deg,var(--card),var(--card-2));border:2px solid var(--line);overflow:hidden}
+  .skeleton .art{background:linear-gradient(100deg,var(--card-2) 30%,rgba(255,255,255,.12) 50%,var(--card-2) 70%);background-size:200% 100%;animation:shimmer 1.1s linear infinite;aspect-ratio:16/9}
+  @keyframes shimmer{to{background-position:-200% 0}}
+  .skeleton .pad{padding:14px}
+  .skeleton .bar{height:14px;border-radius:8px;background:rgba(255,255,255,.14);margin:8px 0}
+  @media (max-width:560px){
+    .searchbar{flex-direction:column}
+    .searchbar button{width:100%}
+    #results{grid-template-columns:1fr 1fr;gap:12px}
+    .card h3{font-size:.98rem}
+    .watch{font-size:1.1rem;min-height:52px;padding:12px}
+  }
+  @media (max-width:380px){ #results{grid-template-columns:1fr} }
+  @media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} }
 </style>
 </head>
 <body>
-<header>
-<h1>🔍 Syft Watching</h1>
-<p>Search YouTube &amp; Disney+ safely</p>
-</header>
-<main>
-<div class="tabs">
-<button id="tab-youtube" class="active" onclick="setTab('youtube')">📺 YouTube</button>
-<button id="tab-disney" onclick="setTab('disney')">✨ Disney+</button>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">🚀</div>
+      <div>
+        <h1>Syft Watching</h1>
+        <p>One search for YouTube &amp; Disney+</p>
+      </div>
+    </div>
+    <button id="themeBtn" aria-label="Switch light and dark mode" title="Light / dark mode">🌙</button>
+  </header>
+
+  <section class="hero">
+    <h2>What do you want to <span class="hl">watch?</span> 🍿</h2>
+    <p>Type once — we check <b>📺 YouTube</b> and <b>✨ Disney+</b> together.</p>
+    <div class="searchbar">
+      <input id="q" type="search" placeholder="Try &quot;Bluey&quot; or &quot;funny cats&quot;…" aria-label="Search YouTube and Disney+ together" autocomplete="off" enterkeyhint="search">
+      <button id="searchBtn" type="button">Search 🔍</button>
+    </div>
+  </section>
+
+  <div class="how" aria-label="How this works">
+    <b>How this works 🪄</b>
+    <ol>
+      <li>Search once above — YouTube and Disney+ results appear together.</li>
+      <li>Tap <b>▶ Watch</b> — the page opens in a new tab for the allow prompt.</li>
+      <li>Dad is emailed automatically — no extra button needed. 💌</li>
+    </ol>
+  </div>
+
+  <div id="rankNote" role="note"></div>
+  <div id="status" class="big">Type something and hit Search! 🎉</div>
+  <div id="results" aria-live="polite"></div>
+
+  <footer>Made for cozy couch mission control 🛋️✨</footer>
 </div>
-<div class="searchrow">
-<input id="q" type="search" placeholder="Search for a show or video…" aria-label="Search">
-<button onclick="doSearch()">Search 🔍</button>
-</div>
-<div class="how">
-<b>How this works:</b> 1️⃣ Search above. 2️⃣ Click <b>▶ Watch</b> to open the video/show in a new tab.
-3️⃣ If the page is blocked, click <b>✉️ Ask Dad</b> to email Dad the title + link so he can allow that page.
-</div>
-<div id="status">Type something and hit Search! 🎉</div>
-<div id="results"></div>
-</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
 <script>
-const DAD_EMAIL = "dad@example.com"; // <-- change to Dad's email address
-let tab = "youtube";
-let debounce = null;
-function setTab(t){
-  tab = t;
-  document.getElementById("tab-youtube").classList.toggle("active", t === "youtube");
-  document.getElementById("tab-disney").classList.toggle("active", t === "disney");
-  doSearch();
+"use strict";
+var root = document.documentElement;
+var themeBtn = document.getElementById("themeBtn");
+var input = document.getElementById("q");
+var searchBtn = document.getElementById("searchBtn");
+var statusEl = document.getElementById("status");
+var resultsEl = document.getElementById("results");
+var rankNote = document.getElementById("rankNote");
+var toastEl = document.getElementById("toast");
+var debounce = null;
+var lastQuery = "";
+var toastTimer = null;
+
+function getSavedTheme() {
+  try { return localStorage.getItem("syft-theme"); } catch (e) { return null; }
 }
-document.getElementById("q").addEventListener("input", () => {
+function setTheme(t) {
+  root.setAttribute("data-theme", t);
+  themeBtn.textContent = (t === "dark") ? "🌙" : "☀️";
+}
+(function initTheme() {
+  var saved = getSavedTheme();
+  if (saved === "dark" || saved === "light") { setTheme(saved); return; }
+  var prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+  setTheme(prefersLight ? "light" : "dark"); // dark default; not persisted until user toggles
+})();
+themeBtn.addEventListener("click", function () {
+  var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  setTheme(next);
+  try { localStorage.setItem("syft-theme", next); } catch (e) {}
+});
+
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 3600);
+}
+
+input.addEventListener("input", function () {
   clearTimeout(debounce);
   debounce = setTimeout(doSearch, 500);
 });
-document.getElementById("q").addEventListener("keydown", (e) => {
+input.addEventListener("keydown", function (e) {
   if (e.key === "Enter") { clearTimeout(debounce); doSearch(); }
 });
-async function doSearch(){
-  const q = document.getElementById("q").value.trim();
-  const status = document.getElementById("status");
-  const results = document.getElementById("results");
-  results.innerHTML = "";
-  if (!q) { status.textContent = "Type something and hit Search! 🎉"; return; }
-  status.textContent = "Searching… ⏳";
+searchBtn.addEventListener("click", function () { clearTimeout(debounce); doSearch(); });
+
+function setLoading(q) {
+  statusEl.innerHTML = '<div class="spinner" aria-hidden="true"></div>Looking everywhere for &ldquo;' + escapeHtml(q) + '&rdquo;&hellip; 🕵️';
+  rankNote.style.display = "none";
+  var s = "";
+  for (var i = 0; i < 4; i++) {
+    s += '<div class="skeleton" aria-hidden="true"><div class="art"></div><div class="pad"><div class="bar" style="width:80%"></div><div class="bar" style="width:45%"></div></div></div>';
+  }
+  resultsEl.innerHTML = s;
+}
+
+async function doSearch() {
+  var q = input.value.trim();
+  resultsEl.innerHTML = "";
+  rankNote.style.display = "none";
+  if (!q) {
+    lastQuery = "";
+    statusEl.textContent = "Type something and hit Search! 🎉";
+    statusEl.classList.add("big");
+    return;
+  }
+  lastQuery = q;
+  statusEl.classList.remove("big");
+  setLoading(q);
   try {
-    const r = await fetch("/api/" + tab + "?q=" + encodeURIComponent(q));
-    if (!r.ok) throw new Error("Search failed (HTTP " + r.status + ")");
-    const data = await r.json();
-    const items = data.results || [];
-    if (!items.length) { status.textContent = "No results found. Try another search! 🔎"; return; }
-    status.textContent = "";
-    results.innerHTML = items.map(cardHTML).join("");
+    var r = await fetch("/api/search?q=" + encodeURIComponent(q));
+    if (!r.ok) throw new Error("Search hiccup (code " + r.status + ")");
+    var data = await r.json();
+    if (q !== lastQuery) return; // a newer search started; ignore stale reply
+    var items = (data && data.results) || [];
+    if (!items.length) {
+      resultsEl.innerHTML = "";
+      statusEl.innerHTML = "Hmm, nothing found for &ldquo;" + escapeHtml(q) + "&rdquo;. 🧭<br>Try a different spelling or a shorter word!";
+      return;
+    }
+    var ranked = rank(items);
+    statusEl.textContent = "";
+    var hasMovies = ranked.some(function (x) { return x.source === "disney"; });
+    var hasVideos = ranked.some(function (x) { return x.source === "youtube"; });
+    if (hasMovies && hasVideos) {
+      rankNote.textContent = "🎬 Movies & shows first, 📺 videos below — all in one list!";
+    } else if (hasMovies) {
+      rankNote.textContent = "✨ Showing Disney+ movies & shows for your search.";
+    } else {
+      rankNote.textContent = "📺 Showing YouTube videos for your search.";
+    }
+    rankNote.style.display = "block";
+    lastItems = ranked;
+    resultsEl.innerHTML = ranked.map(cardHTML).join("");
   } catch (err) {
-    status.textContent = "Oops! Something went wrong. Try again. 😢 (" + err.message + ")";
+    if (q !== lastQuery) return;
+    resultsEl.innerHTML = "";
+    statusEl.innerHTML = "Oh no, the search rocket sputtered! 🚀💨<br>Check your internet and try again. <small>(" + escapeHtml(err.message || "oops") + ")</small>";
   }
 }
-function cardHTML(item){
-  const title = escapeHtml(item.title || "Untitled");
-  const url = item.watchUrl || item.playUrl;
-  const meta = tab === "youtube"
-    ? escapeHtml(item.channel || "")
-    : escapeHtml([item.type, item.year].filter(Boolean).join(" • "));
-  const thumb = item.thumbnail
-    ? '<img src="' + escapeAttr(item.thumbnail) + '" alt="" loading="lazy">'
-    : '<img alt="No thumbnail">';
-  const subject = encodeURIComponent("Please allow: " + (item.title || ""));
-  const body = encodeURIComponent("Hi Dad,\n\nCan you please allow this page?\n\nTitle: " + (item.title || "") + "\nLink: " + url + "\n\nThanks!");
-  return '<div class="card">' + thumb + '<div class="body"><h3>' + title + '</h3>' +
-    '<div class="meta">' + meta + '</div><div class="btns">' +
-    '<a class="btn watch" href="' + escapeAttr(url) + '" target="_blank" rel="noopener">▶ Watch</a>' +
-    '<a class="btn ask" href="mailto:' + DAD_EMAIL + '?subject=' + subject + '&body=' + body + '">✉️ Ask Dad</a>' +
-    '</div></div></div>';
+
+// Disney+ (movies & shows) first, then YouTube videos — stable within each group.
+function rank(items) {
+  var score = { disney: 0, youtube: 1 };
+  return items.slice().sort(function (a, b) {
+    var sa = score[a.source] !== undefined ? score[a.source] : 2;
+    var sb = score[b.source] !== undefined ? score[b.source] : 2;
+    return sa - sb;
+  });
 }
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function cardHTML(item, i) {
+  var isDisney = item.source === "disney";
+  var title = item.title || "Untitled";
+  var url = item.watchUrl || "";
+  var metaBits = [];
+  if (item.type) metaBits.push(item.type);
+  if (item.year) metaBits.push(item.year);
+  var meta = metaBits.join(" • ");
+  var badge = isDisney
+    ? '<span class="badge dz">✨ Disney+</span>'
+    : '<span class="badge yt">📺 YouTube</span>';
+  var art;
+  if (item.thumbnail) {
+    art = '<div class="art">' + badge +
+      '<img src="' + escapeAttr(item.thumbnail) + '" alt="" loading="lazy" onerror="thumbFail(this,' + i + ')">' +
+      "</div>";
+  } else {
+    art = fallbackArt(badge, title);
+  }
+  return '<article class="card" style="animation-delay:' + Math.min(i * 60, 420) + 'ms" data-thumb="' + escapeAttr(title) + '">' +
+    art +
+    '<div class="body"><h3>' + escapeHtml(title) + "</h3>" +
+    (meta ? '<div class="meta">' + escapeHtml(meta) + "</div>" : "") +
+    '<a class="watch" href="' + escapeAttr(url) + '" target="_blank" rel="noopener" ' +
+      'onclick="return onWatch(event,' + i + ')">▶ Watch</a>' +
+    "</div></article>";
 }
-function escapeAttr(s){ return escapeHtml(s).replace(/"/g, "&quot;"); }
+
+function fallbackArt(badge, title) {
+  var letter = (title || "?").trim().charAt(0).toUpperCase() || "?";
+  return '<div class="art fallback">' + badge +
+    '<div><div class="letter">' + escapeHtml(letter) + "</div>" +
+    "<small>No preview 🎨</small></div></div>";
+}
+
+// Called from the inline onerror handler when a thumbnail URL breaks.
+window.thumbFail = function (img, i) {
+  var card = img.closest(".card");
+  var title = (card && card.getAttribute("data-thumb")) || "?";
+  var badge = card ? card.querySelector(".badge") : null;
+  var div = document.createElement("div");
+  div.className = "art fallback";
+  var badgeHTML = badge ? badge.outerHTML : "";
+  var letter = title.trim().charAt(0).toUpperCase() || "?";
+  div.innerHTML = badgeHTML + '<div><div class="letter"></div><small>No preview 🎨</small></div>';
+  div.querySelector(".letter").textContent = letter;
+  img.replaceWith(div);
+};
+
+// Latest ranked results, so the Watch handler can find the clicked item.
+var lastItems = [];
+
+window.onWatch = function (event, i) {
+  var item = lastItems[i] || {};
+  var url = item.watchUrl || "";
+  if (!url) { event.preventDefault(); showToast("😢 Hmm, that link is missing. Try another one!"); return false; }
+  // Fire-and-forget: tell Dad by email, but never block opening the page.
+  try {
+    fetch("/api/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: item.title || "Untitled", url: url, source: item.source || "youtube" })
+    }).then(function (res) {
+      if (res.ok) { showToast("✅ Dad was emailed!"); }
+      else { showToast("▶ Opened! (Dad email still being set up)"); }
+    }).catch(function () {
+      showToast("▶ Opened! (Dad email still being set up)");
+    });
+  } catch (e) {
+    showToast("▶ Opened! (Dad email still being set up)");
+  }
+  return true; // let the link open in a new tab
+};
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+function escapeAttr(s) { return escapeHtml(s); }
 </script>
 </body>
 </html>
