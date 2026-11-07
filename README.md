@@ -51,7 +51,7 @@ echo $KEY | npx wrangler pages secret put RESEND_API_KEY --project-name=syft-wat
 
 Optional Pages vars (dashboard → Settings → Environment variables):
 
-- `DAD_EMAIL` (default `pshippy@gmail.com`)
+- `DAD_EMAIL` (required — Dad's address; no default in code)
 - `FROM_EMAIL` (default `Syft Watching <onboarding@resend.dev>`)
 
 Note: JustWatch HTML (`justwatch.com/us/search`) is the Disney play-URL resolver —

@@ -1,6 +1,6 @@
 // POST /api/notify with JSON {"title","url","source"} -> sends an email via Resend.
 export async function onRequestPost({ request, env }) {
-  if (!env?.RESEND_API_KEY) return json({ error: "email not configured" }, 503);
+  if (!env?.RESEND_API_KEY || !env?.DAD_EMAIL) return json({ error: "email not configured" }, 503);
   let body;
   try {
     body = await request.json();
@@ -12,7 +12,7 @@ export async function onRequestPost({ request, env }) {
   const source = String(body?.source || "").slice(0, 50);
   if (!title || !url) return json({ error: "title and url required" }, 400);
   const from = env.FROM_EMAIL || "Syft Watching <onboarding@resend.dev>";
-  const to = env.DAD_EMAIL || "pshippy@gmail.com";
+  const to = env.DAD_EMAIL;
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
