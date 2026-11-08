@@ -79,12 +79,6 @@
     border-radius:14px;padding:10px 14px;min-height:48px;
   }
   #signOutBtn:active{transform:scale(.96)}
-  #themeBtn{
-    border:2px solid var(--line);background:var(--card);color:var(--ink);
-    font-size:1.25rem;width:56px;height:56px;border-radius:18px;cursor:pointer;flex:none;
-    box-shadow:var(--shadow);transition:transform .15s ease;
-  }
-  #themeBtn:active{transform:scale(.93)}
   .wall{
     margin:14px 0 16px;background:linear-gradient(180deg,var(--card),var(--bg-soft));
     border:2px solid var(--line);border-radius:28px;padding:38px 24px 30px;
@@ -255,7 +249,6 @@
         <span id="userChip" title="Signed in"></span>
         <button id="signOutBtn" type="button">Sign out</button>
       </div>
-      <button id="themeBtn" aria-label="Switch light and dark mode" title="Light / dark mode">🌙</button>
     </div>
   </header>
 
@@ -287,7 +280,6 @@
 <script>
 "use strict";
 var root = document.documentElement;
-var themeBtn = document.getElementById("themeBtn");
 var input = document.getElementById("q");
 var searchBtn = document.getElementById("searchBtn");
 var statusEl = document.getElementById("status");
@@ -310,31 +302,27 @@ var toastTimer = null;
 var lastItems = [];
 
 var CRED_KEY = "syft-credential";
-var credential = null; // Google ID token, memory only + sessionStorage
+var credential = null; // Google ID token, memory + localStorage (persists across sessions)
 var googleClientId = "";
 var gisReady = false;
 var gisLoading = false;
 
-function getSavedTheme() {
-  try { return localStorage.getItem("syft-theme"); } catch (e) { return null; }
-}
-function setTheme(t) {
-  root.setAttribute("data-theme", t);
-  themeBtn.textContent = (t === "dark") ? "🌙" : "☀️";
-}
-(function initTheme() {
-  var saved = getSavedTheme();
-  if (saved === "dark" || saved === "light") { setTheme(saved); return; }
+function applySystemTheme() {
   var prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
-  setTheme(prefersLight ? "light" : "dark"); // dark default; not persisted until user toggles
+  root.setAttribute("data-theme", prefersLight ? "light" : "dark");
+}
+applySystemTheme();
+(function watchSystemTheme() {
+  try {
+    var mq = window.matchMedia("(prefers-color-scheme: light)");
+    var onChange = function () {
+      applySystemTheme();
+      if (!wallEl.hidden && googleClientId) renderGisButton();
+    };
+    if (mq.addEventListener) mq.addEventListener("change", onChange);
+    else if (mq.addListener) mq.addListener(onChange);
+  } catch (e) {}
 })();
-themeBtn.addEventListener("click", function () {
-  var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-  setTheme(next);
-  try { localStorage.setItem("syft-theme", next); } catch (e) {}
-  if (!appEl.hidden) return; // button only visible on the wall; re-render it for the new theme
-  renderGisButton();
-});
 
 function showToast(msg) {
   toastEl.textContent = msg;
@@ -356,14 +344,27 @@ function displayNameFromCredential(cred) {
   } catch (e) { return null; }
 }
 
+function isCredentialExpired(cred) {
+  try {
+    var parts = String(cred).split(".");
+    if (parts.length < 2) return true;
+    var b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    while (b64.length % 4) b64 += "=";
+    var payload = JSON.parse(atob(b64));
+    var exp = payload.exp;
+    if (!exp || isNaN(Number(exp))) return true;
+    return Number(exp) * 1000 <= Date.now() + 60000; // ~60s clock skew margin
+  } catch (e) { return true; }
+}
+
 function setSession(cred) {
   credential = cred;
-  try { sessionStorage.setItem(CRED_KEY, cred); } catch (e) {}
+  try { localStorage.setItem(CRED_KEY, cred); } catch (e) {}
 }
 
 function clearSession() {
   credential = null; // clear memory
-  try { sessionStorage.removeItem(CRED_KEY); } catch (e) {} // clear reload-persisted copy
+  try { localStorage.removeItem(CRED_KEY); } catch (e) {} // clear persisted copy
 }
 
 function showWall(msg) {
@@ -408,6 +409,7 @@ function showApp(first, picture) {
 
 function handleSessionExpired() {
   clearSession();
+  try { if (window.google && window.google.accounts && window.google.accounts.id) window.google.accounts.id.disableAutoSelect(); } catch (e) {}
   resultsEl.innerHTML = "";
   if (rankNote) rankNote.style.display = "none";
   showWall("Signed out — sign in");
@@ -429,7 +431,8 @@ function onCredential(response) {
 }
 
 signOutBtn.addEventListener("click", function () {
-  clearSession(); // memory + sessionStorage both cleared
+  clearSession(); // memory + localStorage both cleared
+  try { if (window.google && window.google.accounts && window.google.accounts.id) window.google.accounts.id.disableAutoSelect(); } catch (e) {}
   lastQuery = "";
   lastItems = [];
   resultsEl.innerHTML = "";
@@ -447,7 +450,7 @@ function renderGisButton() {
   if (!googleClientId) return; // setup note handles this case
   if (!gisReady || !window.google || !window.google.accounts) { showGisError(); return; }
   try {
-    window.google.accounts.id.initialize({ client_id: googleClientId, callback: onCredential, auto_select: false, cancel_on_tap_outside: true });
+    window.google.accounts.id.initialize({ client_id: googleClientId, callback: onCredential, auto_select: true, cancel_on_tap_outside: true });
     var dark = root.getAttribute("data-theme") !== "light";
     window.google.accounts.id.renderButton(gisWallBtn, { type: "standard", theme: dark ? "filled_black" : "outline", size: "large", text: "signin_with", shape: "pill", logo_alignment: "left" });
   } catch (e) { showGisError(); }
@@ -522,6 +525,9 @@ async function bootAuth() {
     gisReady = true;
     if (wallEl.hidden === false || !credential) renderGisButton();
     else renderGisButton();
+    if (!credential && !wallEl.hidden) {
+      try { window.google.accounts.id.prompt(); } catch (e) {}
+    }
   } catch (e) {
     gisReady = false;
     showGisError();
@@ -531,15 +537,18 @@ async function bootAuth() {
 // Restore a signed-in session so a reload doesn't re-prompt.
 (function restore() {
   try {
-    var saved = sessionStorage.getItem(CRED_KEY);
+    var saved = localStorage.getItem(CRED_KEY);
     if (saved) {
-      var who = displayNameFromCredential(saved);
-      if (who && (who.first || who.picture)) {
-        credential = saved;
-        showApp(who.first, who.picture);
-      } else if (saved.split(".").length === 3) {
-        credential = saved;
-        showApp("", "");
+      if (isCredentialExpired(saved)) { try { localStorage.removeItem(CRED_KEY); } catch (e2) {} }
+      else {
+        var who = displayNameFromCredential(saved);
+        if (who && (who.first || who.picture)) {
+          credential = saved;
+          showApp(who.first, who.picture);
+        } else if (saved.split(".").length === 3) {
+          credential = saved;
+          showApp("", "");
+        }
       }
     }
   } catch (e) {}
