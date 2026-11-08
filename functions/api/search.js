@@ -15,20 +15,14 @@ export async function onRequestGet({ request, env }) {
   if (!user) return json({ error: "login required" }, 401);
   const q = (new URL(request.url).searchParams.get("q") || "").trim();
   if (!q) return json({ results: [] });
-  const [yt, jw, itunes, tvmaze] = await Promise.allSettled([
+  const [yt, jw] = await Promise.allSettled([
     youtubeSearch(q),
     justwatchDisney(q),
-    searchItunes(q),
-    searchTvmaze(q),
   ]).then((rs) => rs.map((r) => (r.status === "fulfilled" ? r.value : [])));
-  // iTunes/TVMaze are metadata-only: skip any whose exact normalized title
-  // duplicates a JustWatch UUID hit (JW direct-play link wins).
-  const jwTitles = new Set(jw.map((h) => normalize(h.title)));
-  const meta = [...itunes, ...tvmaze].filter((h) => !jwTitles.has(normalize(h.title)));
   // Poster backfill: one best-effort lookup per thumbnail-less JW hit.
   await backfillPosters(jw);
   const nq = normalize(q);
-  const ranked = [...jw, ...meta, ...yt]
+  const ranked = [...jw, ...yt]
     .map((h) => ({ h, s: score(h, nq) }))
     .sort((a, b) => b.s - a.s);
   const seenUrl = new Set();
@@ -228,7 +222,9 @@ async function justwatchDisney(q) {
   }
 }
 
-// --- Disney metadata/posters: iTunes movies + TVMaze shows ---
+// --- Poster metadata only (never emitted as results): iTunes movies + TVMaze shows ---
+// Thumbnail-only helpers for backfillPosters; labeled source:"meta" so
+// justwatchDisney() stays the sole emitter of source:"disney" rows.
 async function searchItunes(term) {
   try {
     const res = await fetch(
@@ -242,7 +238,7 @@ async function searchItunes(term) {
     return (data?.results || [])
       .filter((r) => r?.trackName)
       .map((r) => ({
-        source: "disney",
+        source: "meta",
         title: r.trackName,
         year: String(r.releaseDate || "").slice(0, 4),
         type: "Movie",
@@ -266,7 +262,7 @@ async function searchTvmaze(term) {
       const s = hit?.show;
       if (!s?.name) continue;
       out.push({
-        source: "disney",
+        source: "meta",
         title: s.name,
         year: String(s.premiered || "").slice(0, 4),
         type: s.type || "TV",
