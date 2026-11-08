@@ -46,10 +46,6 @@ export async function onRequestGet({ request, env }) {
     q,
     results.map((h) => h.title)
   );
-  if (verdict.query.blocked) {
-    await notifyBlockedSearch(env, user, q, verdict.query);
-    return json({ error: "blocked", blocked: true, results: [], categories: [verdict.query.top], moderation: verdict.provider }, 403);
-  }
   const removed = [];
   const kept = results.filter((h, i) => {
     const f = verdict.items[i];
@@ -59,6 +55,14 @@ export async function onRequestGet({ request, env }) {
     }
     return true;
   });
+  // Ensemble: a suspicious query (edge) that also returns suspicious results
+  // is treated as over the edge — single noisy scores flip run to run, but
+  // query-edge plus item-edge together is a consistent block signal.
+  const overEdge = verdict.query.blocked || (verdict.query.edge && removed.length > 0);
+  if (overEdge) {
+    await notifyBlockedSearch(env, user, q, verdict.query);
+    return json({ error: "blocked", blocked: true, results: [], categories: [verdict.query.top], moderation: verdict.provider }, 403);
+  }
   if (verdict.query.edge || removed.length > 0) {
     await notifyEdgeSearch(env, user, q, verdict.query, removed);
     return json({ results: kept, review: true, moderation: verdict.provider });
@@ -316,10 +320,14 @@ function moderatorFirstName(user) {
   return (user.firstName || "").trim() || String(user.email || "").split("@")[0] || "Someone";
 }
 async function sendParentEmail(env, subject, text) {
+  const log = (m) => { try { console.error(m); } catch { /* ignore */ } };
   try {
-    if (!env?.RESEND_API_KEY || !env?.PARENT_EMAIL) return;
+    if (!env?.RESEND_API_KEY || !env?.PARENT_EMAIL) {
+      log("parent email skipped: missing key or address");
+      return;
+    }
     const from = env.FROM_EMAIL || "Syft Watching <onboarding@resend.dev>";
-    await fetch("https://api.resend.com/emails", {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: "Bearer " + env.RESEND_API_KEY,
@@ -328,8 +336,12 @@ async function sendParentEmail(env, subject, text) {
       body: JSON.stringify({ from, to: [env.PARENT_EMAIL], subject, text }),
       signal: AbortSignal.timeout(8000),
     });
-  } catch {
-    /* best-effort: never throw */
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      log("resend failed: http " + res.status + " " + String(body).slice(0, 200));
+    }
+  } catch (err) {
+    log("resend error: " + (err && err.name ? err.name : "unknown"));
   }
 }
 async function notifyBlockedSearch(env, user, q, verdict) {
