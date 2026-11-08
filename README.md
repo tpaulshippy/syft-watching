@@ -101,7 +101,9 @@ clothing terms score lower than explicit content but still merit review:
   HTTP 403 `{"error":"blocked","blocked":true,"results":[]}` plus a silent
   parent email. The client shows "Blocked — try a different search".
 - Query >= 0.6 (language/sexuality) or >= 0.3 (immodesty) → edge:
-  results allowed plus a silent parent email (no UI change).
+  results allowed plus a silent parent email (no UI change). An edge query
+  that also returns edge-level results is treated as over the edge and
+  blocked (single scores vary run to run; the combination is consistent).
 - Any result at/over its edge cutoff is removed before responding; when
   results are removed the parent email lists them. Query-clean + nothing
   removed behaves as before.
