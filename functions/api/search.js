@@ -209,13 +209,17 @@ async function justwatchDisney(q) {
       const after = html.slice(m.index, m.index + 400);
       const tmatch = after.match(/uct_pt=(movie|show)/);
       const type = tmatch ? (tmatch[1] === "show" ? "TV" : "Movie") : "Movie";
+      const watchUrl =
+        type === "TV"
+          ? "https://www.disneyplus.com/browse/entity-" + uuid
+          : "https://www.disneyplus.com/play/" + uuid;
       out.push({
         source: "disney",
         title,
         year,
         type,
         thumbnail: "",
-        watchUrl: "https://www.disneyplus.com/play/" + uuid,
+        watchUrl,
       });
     }
     return out;
