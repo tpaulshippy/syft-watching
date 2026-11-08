@@ -147,13 +147,6 @@
   }
   .searchbar input:focus{border-color:var(--accent)}
   .searchbar input::placeholder{color:var(--ink-dim);font-weight:600;font-size:inherit}
-  .searchbar button{
-    font-family:"Baloo 2",cursive;font-size:1.2rem;font-weight:800;cursor:pointer;
-    background:linear-gradient(180deg,#ffc44d,var(--accent));color:var(--accent-ink);
-    border:none;border-radius:18px;padding:16px 26px;min-height:60px;min-width:132px;
-    box-shadow:0 8px 20px rgba(255,176,32,.35);transition:transform .15s ease;
-  }
-  .searchbar button:active{transform:scale(.96)}
   .how{
     margin:14px 0 6px;border-radius:18px;padding:14px 16px;font-size:1rem;font-weight:600;
     background:rgba(255,176,32,.12);border:2px dashed rgba(255,176,32,.65);
@@ -229,7 +222,6 @@
     .wall{padding:24px 16px;overflow-wrap:anywhere}
     .hero{padding:20px 16px;overflow-wrap:anywhere}
     .searchbar{flex-direction:column}
-    .searchbar button{width:100%;min-width:0}
     #results{grid-template-columns:1fr;gap:12px}
     .card h3{font-size:.98rem}
     .watch{font-size:1.1rem;min-height:52px;padding:12px}
@@ -270,7 +262,6 @@
       <h2 id="hello" hidden></h2>
       <div class="searchbar">
         <input id="q" type="search" placeholder="Search…" aria-label="Search" autocomplete="off" enterkeyhint="search">
-        <button id="searchBtn" type="button" aria-label="Search">🔍 Search</button>
       </div>
     </section>
 
@@ -285,7 +276,6 @@
 "use strict";
 var root = document.documentElement;
 var input = document.getElementById("q");
-var searchBtn = document.getElementById("searchBtn");
 var statusEl = document.getElementById("status");
 var resultsEl = document.getElementById("results");
 var rankNote = document.getElementById("rankNote");
@@ -565,7 +555,6 @@ input.addEventListener("input", function () {
 input.addEventListener("keydown", function (e) {
   if (e.key === "Enter") { clearTimeout(debounce); doSearch(); }
 });
-searchBtn.addEventListener("click", function () { clearTimeout(debounce); doSearch(); });
 
 function setLoading(q) {
   statusEl.innerHTML = '<div class="spinner" aria-hidden="true"></div>Searching…';
