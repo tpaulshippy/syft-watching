@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Syft Watching</title>
 <meta name="description" content="One safe search box for YouTube and Disney+. Pick something to watch — a parent gets emailed automatically.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -54,18 +54,18 @@
       radial-gradient(800px 380px at 90% -60px, rgba(61,218,215,.22), transparent 60%),
       var(--bg)}
   [hidden]{display:none!important}
-  .wrap{max-width:960px;margin:0 auto;padding:0 18px 90px}
-  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 0 6px}
-  .brand{display:flex;align-items:center;gap:12px}
+  .wrap{max-width:960px;margin:0 auto;padding:0 max(18px,env(safe-area-inset-left)) calc(90px + env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-right))}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 0 6px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1 1 auto}
   .logo{
     width:52px;height:52px;border-radius:18px;display:grid;place-items:center;font-size:1.7rem;flex:none;
     background:linear-gradient(135deg,#ffb020,#ff6b6b 60%,#7c5cff);
     box-shadow:0 8px 22px rgba(255,107,107,.4);
   }
-  .brand h1{font-family:"Baloo 2",cursive;font-size:1.55rem;margin:0;line-height:1.05;letter-spacing:.2px}
+  .brand h1{font-family:"Baloo 2",cursive;font-size:1.55rem;margin:0;line-height:1.05;letter-spacing:.2px;overflow-wrap:anywhere}
   .brand p{margin:2px 0 0;color:var(--ink-dim);font-size:.95rem;font-weight:600}
-  .top-right{display:flex;align-items:center;gap:10px;flex:none}
-  #userArea{display:flex;align-items:center;gap:8px}
+  .top-right{display:flex;align-items:center;gap:10px;flex:none;min-width:0;max-width:100%}
+  #userArea{display:flex;align-items:center;gap:8px;min-width:0;max-width:100%;flex-wrap:wrap}
   #userChip{
     display:inline-flex;align-items:center;gap:8px;max-width:200px;
     background:rgba(61,218,215,.12);border:2px solid rgba(61,218,215,.5);
@@ -73,6 +73,7 @@
     padding:8px 14px 8px 8px;border-radius:999px;white-space:nowrap;overflow:hidden;
   }
   #userChip img{width:28px;height:28px;border-radius:50%;object-fit:cover;flex:none}
+  #userChip span{overflow:hidden;text-overflow:ellipsis;min-width:0}
   #signOutBtn{
     border:2px solid var(--line);background:var(--card);color:var(--ink);
     font-family:"Nunito",sans-serif;font-weight:800;font-size:.92rem;cursor:pointer;
@@ -100,7 +101,7 @@
   .wall h2 .hl{color:var(--accent)}
   .wall .why{margin:8px auto 0;max-width:26rem;color:var(--ink-dim);font-weight:700;font-size:1.02rem}
   #gisWallBtn{display:flex;justify-content:center;margin:20px 0 6px;min-height:48px;position:relative;z-index:1}
-  #gisWallBtn iframe{border-radius:12px}
+  #gisWallBtn iframe{border-radius:12px;max-width:100%}
   .auth-msg{
     display:none;margin:12px auto 0;max-width:30rem;padding:10px 16px;border-radius:14px;
     background:rgba(255,90,90,.12);border:1.5px solid rgba(255,90,90,.55);
@@ -140,12 +141,12 @@
     flex-direction:row;
   }
   .searchbar input{
-    flex:1;min-width:0;font-size:1.2rem;font-weight:700;color:var(--ink);
+    flex:1;min-width:0;font-size:max(1.2rem,16px);font-weight:700;color:var(--ink);
     background:var(--bg);border:3px solid var(--line);border-radius:18px;
     padding:16px 18px;outline:none;
   }
   .searchbar input:focus{border-color:var(--accent)}
-  .searchbar input::placeholder{color:var(--ink-dim);font-weight:600}
+  .searchbar input::placeholder{color:var(--ink-dim);font-weight:600;font-size:inherit}
   .searchbar button{
     font-family:"Baloo 2",cursive;font-size:1.2rem;font-weight:800;cursor:pointer;
     background:linear-gradient(180deg,#ffc44d,var(--accent));color:var(--accent-ink);
@@ -180,8 +181,8 @@
     animation:rise .35s ease backwards;
   }
   @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  .art{position:relative;aspect-ratio:16/9;overflow:hidden;background:#0e1630}
-  .art img{width:100%;height:100%;object-fit:cover;display:block}
+  .art{position:relative;aspect-ratio:16/9;overflow:hidden;background:#0e1630;max-width:100%}
+  .art img{width:100%;height:100%;object-fit:cover;display:block;max-width:100%}
   .art.fallback{display:grid;place-items:center;text-align:center;padding:10px;
     background:linear-gradient(135deg,#2b3a7d,#6d3fd4 45%,#ff6b6b 100%)}
   [data-theme="light"] .art.fallback{background:linear-gradient(135deg,#7c9bff,#b07cff 45%,#ff8a5c 100%)}
@@ -197,9 +198,9 @@
   }
   .badge.yt{background:rgba(20,0,0,.72);color:#ffb3b3;border:1.5px solid rgba(255,90,90,.8)}
   .badge.dz{background:rgba(0,12,40,.72);color:#c4dcff;border:1.5px solid rgba(90,168,255,.8)}
-  .card .body{padding:14px 14px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
-  .card h3{margin:0;font-size:1.08rem;line-height:1.3;font-weight:800}
-  .meta{color:var(--ink-dim);font-size:.92rem;font-weight:700}
+  .card .body{padding:14px 14px 16px;display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
+  .card h3{margin:0;font-size:1.08rem;line-height:1.3;font-weight:800;overflow-wrap:anywhere}
+  .meta{color:var(--ink-dim);font-size:.92rem;font-weight:700;overflow-wrap:anywhere}
   .watch{
     display:block;text-align:center;margin-top:10px;text-decoration:none;
     font-family:"Baloo 2",cursive;font-size:1.25rem;font-weight:800;
@@ -209,11 +210,11 @@
   }
   .watch:active{transform:scale(.97)}
   #toast{
-    position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120px);
+    position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(120px);
     background:#101c3f;color:#fff;border:2px solid rgba(61,218,215,.6);
     padding:14px 20px;border-radius:16px;font-weight:800;font-size:1.02rem;
     box-shadow:0 12px 30px rgba(0,0,0,.5);opacity:0;transition:all .3s ease;
-    max-width:min(92vw,480px);text-align:center;z-index:50;
+    max-width:min(92vw,480px);width:max-content;text-align:center;overflow-wrap:anywhere;z-index:50;
   }
   [data-theme="light"] #toast{background:#16204a}
   #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
@@ -224,14 +225,17 @@
   .skeleton .pad{padding:14px}
   .skeleton .bar{height:14px;border-radius:8px;background:rgba(255,255,255,.14);margin:8px 0}
   @media (max-width:560px){
+    .brand h1{font-size:1.25rem}
+    .wall{padding:24px 16px;overflow-wrap:anywhere}
+    .hero{padding:20px 16px;overflow-wrap:anywhere}
     .searchbar{flex-direction:column}
-    .searchbar button{width:100%}
-    #results{grid-template-columns:1fr 1fr;gap:12px}
+    .searchbar button{width:100%;min-width:0}
+    #results{grid-template-columns:1fr;gap:12px}
     .card h3{font-size:.98rem}
     .watch{font-size:1.1rem;min-height:52px;padding:12px}
-    #userChip{max-width:130px;font-size:.85rem}
+    #userChip{max-width:112px;font-size:.85rem;padding:8px 10px 8px 8px}
+    #signOutBtn{padding:10px 12px;min-height:44px}
   }
-  @media (max-width:380px){ #results{grid-template-columns:1fr} }
   @media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} }
 </style>
 </head>
