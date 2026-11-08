@@ -46,9 +46,9 @@ export async function onRequestGet({ request, env }) {
   }
   if (verdict.edge) {
     await notifyEdgeSearch(env, user, q, verdict);
-    return json({ results, review: true }, 200, true);
+    return json({ results, review: true });
   }
-  return json({ results }, 200, true);
+  return json({ results });
 }
 
 // --- YouTube: three-stage keyless parse ---
@@ -337,8 +337,9 @@ async function notifyEdgeSearch(env, user, q, verdict) {
     new Date().toISOString();
   await sendParentEmail(env, subject, text);
 }
-function json(obj, status = 200, cache = false) {
-  const headers = { "content-type": "application/json" };
-  if (cache) headers["Cache-Control"] = "public, max-age=3600";
+function json(obj, status = 200) {
+  // Never cache: every search must execute moderation (a cached clean
+  // response would bypass the safety gate and its parent email).
+  const headers = { "content-type": "application/json", "Cache-Control": "no-store" };
   return new Response(JSON.stringify(obj), { status, headers });
 }
