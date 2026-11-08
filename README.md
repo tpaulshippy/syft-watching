@@ -88,3 +88,21 @@ npm run check    # node --check on functions + server
 ```
 
 Note: `/api/*` Pages Functions only run on Cloudflare Pages, not the local preview server.
+
+## Search moderation (Jev)
+
+`GET /api/search?q=` classifies each query via `POST {TYPESAFE_API_BASE}/v1/systemone noul x3`
+(categories: `adult_language`, `sexuality`, `immodesty`):
+
+- Score >= 0.85 → blocked: HTTP 403 `{"error":"blocked","blocked":true,"results":[]}`
+  plus a silent parent email. The client shows "Blocked — try a different search".
+- Score >= 0.6 → edge: HTTP 200 `{"results":[...],"review":true}` with results
+  allowed and the parent emailed silently (no UI change).
+- Below 0.6 → clean, as today.
+
+Fail-open: without a `TYPESAFE_API_KEY` secret, search runs unmoderated.
+
+Required Pages secret: `TYPESAFE_API_KEY`. Optional Pages vars:
+`TYPESAFE_API_BASE` (default Typesafe endpoint), `JEV_MODEL`.
+
+Parent email reuses `RESEND_API_KEY` / `PARENT_EMAIL` / `FROM_EMAIL`.

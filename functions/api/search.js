@@ -8,12 +8,18 @@ const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 
 import { verifyGoogleIdToken, getBearerToken } from "../lib/auth.js";
+import { classifySearch } from "../lib/moderation.js";
 
 export async function onRequestGet({ request, env }) {
   const user = await verifyGoogleIdToken(env, getBearerToken(request));
   if (!user) return json({ error: "login required" }, 401);
   const q = (new URL(request.url).searchParams.get("q") || "").trim();
   if (!q) return json({ results: [] });
+  const verdict = await classifySearch(env, q);
+  if (verdict.blocked) {
+    await notifyBlockedSearch(env, user, q, verdict);
+    return json({ error: "blocked", blocked: true, results: [], categories: [verdict.top] }, 403);
+  }
   const [yt, jw, itunes, tvmaze] = await Promise.allSettled([
     youtubeSearch(q),
     justwatchDisney(q),
@@ -37,6 +43,10 @@ export async function onRequestGet({ request, env }) {
     seenUrl.add(h.watchUrl);
     results.push(h);
     if (results.length >= 20) break;
+  }
+  if (verdict.edge) {
+    await notifyEdgeSearch(env, user, q, verdict);
+    return json({ results, review: true }, 200, true);
   }
   return json({ results }, 200, true);
 }
@@ -285,6 +295,47 @@ function score(item, nq) {
   else if (nq && t.includes(nq)) s = 30;
   if (item.source === "disney") s += 10;
   return s;
+}
+// --- Moderation parent notifications (best-effort, never throw) ---
+function moderatorFirstName(user) {
+  return (user.firstName || "").trim() || String(user.email || "").split("@")[0] || "Someone";
+}
+async function sendParentEmail(env, subject, text) {
+  try {
+    if (!env?.RESEND_API_KEY || !env?.PARENT_EMAIL) return;
+    const from = env.FROM_EMAIL || "Syft Watching <onboarding@resend.dev>";
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + env.RESEND_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ from, to: [env.PARENT_EMAIL], subject, text }),
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch {
+    /* best-effort: never throw */
+  }
+}
+async function notifyBlockedSearch(env, user, q, verdict) {
+  const name = moderatorFirstName(user);
+  const subject = name + " searched a blocked term: " + String(q).slice(0, 200);
+  const text =
+    "Query: " + q + "\n" +
+    "Category: " + verdict.top + "\n" +
+    "Scores: " + JSON.stringify(verdict.scores) + "\n" +
+    new Date().toISOString();
+  await sendParentEmail(env, subject, text);
+}
+async function notifyEdgeSearch(env, user, q, verdict) {
+  const name = moderatorFirstName(user);
+  const subject = name + " searched something to review: " + String(q).slice(0, 200);
+  const text =
+    "Query: " + q + "\n" +
+    "Category: " + verdict.top + "\n" +
+    "Scores: " + JSON.stringify(verdict.scores) + "\n" +
+    new Date().toISOString();
+  await sendParentEmail(env, subject, text);
 }
 function json(obj, status = 200, cache = false) {
   const headers = { "content-type": "application/json" };

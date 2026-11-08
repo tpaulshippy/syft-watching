@@ -585,6 +585,7 @@ async function doSearch() {
   try {
     var r = await fetch("/api/search?q=" + encodeURIComponent(q), { headers: { "Authorization": "Bearer " + credential } });
     if (r.status === 401) { handleSessionExpired(); return; }
+    if (r.status === 403) { var b = await r.json().catch(function () { return null; }); if (q !== lastQuery) return; resultsEl.innerHTML = ""; statusEl.textContent = "Blocked — try a different search"; return; }
     if (!r.ok) throw new Error("Search hiccup (code " + r.status + ")");
     var data = await r.json();
     if (q !== lastQuery) return; // a newer search started; ignore stale reply

@@ -4,7 +4,7 @@
   "description": "Kid-friendly YouTube + Disney+ search front-end on Cloudflare Pages",
   "scripts": {
     "preview": "node server.js",
-    "check": "node --check functions/lib/auth.js && node --check functions/api/search.js && node --check functions/api/notify.js && node --check functions/api/config.js && node --check server.js && echo OK"
+    "check": "node --check functions/lib/auth.js && node --check functions/lib/moderation.js && node --check functions/api/search.js && node --check functions/api/notify.js && node --check functions/api/config.js && node --check server.js && echo OK"
   },
   "license": "MIT"
 }
