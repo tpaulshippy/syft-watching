@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Syft Watching</title>
-<meta name="description" content="One safe search box for YouTube and Disney+. Pick something to watch — Dad gets emailed automatically.">
+<meta name="description" content="One safe search box for YouTube and Disney+. Pick something to watch — a parent gets emailed automatically.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -670,7 +670,7 @@ window.onWatch = function (event, i) {
   var url = item.watchUrl || "";
   if (!url) { event.preventDefault(); showToast("Link missing"); return false; }
   if (!credential) { event.preventDefault(); showWall("Sign in first"); showToast("Sign in first"); return false; }
-  // Fire-and-forget: tell Dad by email, but never block opening the page.
+  // Fire-and-forget: tell a parent by email, but never block opening the page.
   try {
     fetch("/api/notify", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + credential }, body: JSON.stringify({ title: item.title || "Untitled", url: url, source: item.source || "youtube" }) }).then(function (res) {
       if (res.status === 401) { handleSessionExpired(); return; }

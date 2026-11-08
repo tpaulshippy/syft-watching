@@ -22,12 +22,12 @@ Required Pages env var (dashboard → Settings → Environment variables):
 
 1. Kid signs in with Google, searches once (YouTube + Disney+ together).
 2. Cards show a prominent **▶ Watch** button linking straight to the play URL in a new tab.
-3. The home network only allows approved pages — the blocked page triggers the parent's allow prompt, and Dad is automatically emailed who wants to watch what.
-4. Dad allows that page on the router/filter, and the kid can watch.
+3. The home network only allows approved pages — the blocked page triggers the parent's allow prompt, and a parent is automatically emailed who wants to watch what.
+4. The parent allows that page on the router/filter, and the kid can watch.
 
-## Configure the email address
+## Configure the notification address
 
-Set the `DAD_EMAIL` Pages env var (dashboard → Pages project → Settings →
+Set the `PARENT_EMAIL` Pages env var (dashboard → Pages project → Settings →
 Environment variables). No address lives in code.
 
 ## Deploy (GitHub → Cloudflare Pages)
@@ -68,7 +68,7 @@ echo $KEY | npx wrangler pages secret put RESEND_API_KEY --project-name=syft-wat
 
 Optional Pages vars (dashboard → Settings → Environment variables):
 
-- `DAD_EMAIL` (required — Dad's address; no default in code)
+- `PARENT_EMAIL` (required — parent's address; no default in code)
 - `FROM_EMAIL` (default `Syft Watching <onboarding@resend.dev>`)
 - `GOOGLE_CLIENT_ID` (required — Google OAuth client ID for login; see Auth above)
 

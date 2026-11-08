@@ -6,7 +6,7 @@ import { verifyGoogleIdToken, getBearerToken } from "../lib/auth.js";
 export async function onRequestPost({ request, env }) {
   const user = await verifyGoogleIdToken(env, getBearerToken(request));
   if (!user) return json({ error: "login required" }, 401);
-  if (!env?.RESEND_API_KEY || !env?.DAD_EMAIL) return json({ error: "email not configured" }, 503);
+  if (!env?.RESEND_API_KEY || !env?.PARENT_EMAIL) return json({ error: "email not configured" }, 503);
   let body;
   try {
     body = await request.json();
@@ -18,7 +18,7 @@ export async function onRequestPost({ request, env }) {
   const source = String(body?.source || "").slice(0, 50);
   if (!title || !url) return json({ error: "title and url required" }, 400);
   const from = env.FROM_EMAIL || "Syft Watching <onboarding@resend.dev>";
-  const to = env.DAD_EMAIL;
+  const to = env.PARENT_EMAIL;
   const name =
     (user.firstName || "").trim() || String(user.email || "").split("@")[0] || "Someone";
   try {
