@@ -8,18 +8,13 @@ const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 
 import { verifyGoogleIdToken, getBearerToken } from "../lib/auth.js";
-import { classifySearch } from "../lib/moderation.js";
+import { classifySearchAndResults } from "../lib/moderation.js";
 
 export async function onRequestGet({ request, env }) {
   const user = await verifyGoogleIdToken(env, getBearerToken(request));
   if (!user) return json({ error: "login required" }, 401);
   const q = (new URL(request.url).searchParams.get("q") || "").trim();
   if (!q) return json({ results: [] });
-  const verdict = await classifySearch(env, q);
-  if (verdict.blocked) {
-    await notifyBlockedSearch(env, user, q, verdict);
-    return json({ error: "blocked", blocked: true, results: [], categories: [verdict.top] }, 403);
-  }
   const [yt, jw, itunes, tvmaze] = await Promise.allSettled([
     youtubeSearch(q),
     justwatchDisney(q),
@@ -44,11 +39,31 @@ export async function onRequestGet({ request, env }) {
     results.push(h);
     if (results.length >= 20) break;
   }
-  if (verdict.edge) {
-    await notifyEdgeSearch(env, user, q, verdict);
-    return json({ results, review: true });
+  // One Jev call scores the query AND every result title; anything at or
+  // over the edge is removed before responding.
+  const verdict = await classifySearchAndResults(
+    env,
+    q,
+    results.map((h) => h.title)
+  );
+  if (verdict.query.blocked) {
+    await notifyBlockedSearch(env, user, q, verdict.query);
+    return json({ error: "blocked", blocked: true, results: [], categories: [verdict.query.top], moderation: verdict.provider }, 403);
   }
-  return json({ results });
+  const removed = [];
+  const kept = results.filter((h, i) => {
+    const f = verdict.items[i];
+    if (f && (f.edge || f.blocked)) {
+      removed.push(h);
+      return false;
+    }
+    return true;
+  });
+  if (verdict.query.edge || removed.length > 0) {
+    await notifyEdgeSearch(env, user, q, verdict.query, removed);
+    return json({ results: kept, review: true, moderation: verdict.provider });
+  }
+  return json({ results: kept, moderation: verdict.provider });
 }
 
 // --- YouTube: three-stage keyless parse ---
@@ -327,14 +342,20 @@ async function notifyBlockedSearch(env, user, q, verdict) {
     new Date().toISOString();
   await sendParentEmail(env, subject, text);
 }
-async function notifyEdgeSearch(env, user, q, verdict) {
+async function notifyEdgeSearch(env, user, q, verdict, removed) {
   const name = moderatorFirstName(user);
   const subject = name + " searched something to review: " + String(q).slice(0, 200);
-  const text =
+  let text =
     "Query: " + q + "\n" +
     "Category: " + verdict.top + "\n" +
-    "Scores: " + JSON.stringify(verdict.scores) + "\n" +
-    new Date().toISOString();
+    "Scores: " + JSON.stringify(verdict.scores) + "\n";
+  if (removed && removed.length > 0) {
+    text +=
+      "Removed results:\n" +
+      removed.map((h) => "- " + String(h.title || "Untitled").slice(0, 200)).join("\n") +
+      "\n";
+  }
+  text += new Date().toISOString();
   await sendParentEmail(env, subject, text);
 }
 function json(obj, status = 200) {

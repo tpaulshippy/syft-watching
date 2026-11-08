@@ -91,18 +91,24 @@ Note: `/api/*` Pages Functions only run on Cloudflare Pages, not the local previ
 
 ## Search moderation (Jev)
 
-`GET /api/search?q=` classifies each query via `POST {TYPESAFE_API_BASE}/v1/systemone noul x3`
-(categories: `adult_language`, `sexuality`, `immodesty`):
+`GET /api/search?q=` scores the query AND every result title in a single
+`POST {TYPESAFE_API_BASE}/v1/systemone` call (noul questions per category:
+`adult_language`, `sexuality`, `immodesty`; per-result questions are
+`item_<i>_*`). Cutoffs are lower for immodesty because swimwear/revealing
+clothing terms score lower than explicit content but still merit review:
 
-- Score >= 0.85 (language/sexuality) or >= 0.7 (immodesty) → blocked: HTTP 403 `{"error":"blocked","blocked":true,"results":[]}`
-  plus a silent parent email. The client shows "Blocked — try a different search".
-- Score >= 0.6 (language/sexuality) or >= 0.3 (immodesty) → edge: HTTP 200 `{"results":[...],"review":true}` with results
-  allowed and the parent emailed silently (no UI change). Immodesty cutoffs are
-  lower because swimwear/revealing-clothing terms score lower than explicit
-  content but still merit review.
-- Below 0.6 → clean, as today.
+- Query >= 0.85 (language/sexuality) or >= 0.7 (immodesty) → blocked:
+  HTTP 403 `{"error":"blocked","blocked":true,"results":[]}` plus a silent
+  parent email. The client shows "Blocked — try a different search".
+- Query >= 0.6 (language/sexuality) or >= 0.3 (immodesty) → edge:
+  results allowed plus a silent parent email (no UI change).
+- Any result at/over its edge cutoff is removed before responding; when
+  results are removed the parent email lists them. Query-clean + nothing
+  removed behaves as before.
 
-Fail-open: without a `TYPESAFE_API_KEY` secret, search runs unmoderated.
+Fail-open: without a `TYPESAFE_API_KEY` secret (or on Jev error/timeout),
+search runs unmoderated. Fallbacks log `jev moderation fallback: <reason>`
+server-side, and every response carries `"moderation": "jev"|"fallback"`.
 
 Required Pages secret: `TYPESAFE_API_KEY`. Optional Pages vars:
 `TYPESAFE_API_BASE` (default Typesafe endpoint), `JEV_MODEL`.
