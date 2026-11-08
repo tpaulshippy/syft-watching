@@ -1,5 +1,4 @@
 node_modules/
-allowlist.json
 .wrangler/
 .dev.vars
 wrangler.toml

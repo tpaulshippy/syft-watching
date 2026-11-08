@@ -20,20 +20,15 @@ Required Pages env var (dashboard → Settings → Environment variables):
 
 ## How search → watch → allow works
 
-1. Kid picks a tab (**YouTube** / **Disney+**) and searches.
-2. Results show cards with a prominent **▶ Watch** button linking straight to the play URL in a new tab.
-3. The home network only allows approved pages — if a page is blocked, the kid clicks **✉️ Ask Dad**, which opens an email to Dad with the title + link.
+1. Kid signs in with Google, searches once (YouTube + Disney+ together).
+2. Cards show a prominent **▶ Watch** button linking straight to the play URL in a new tab.
+3. The home network only allows approved pages — the blocked page triggers the parent's allow prompt, and Dad is automatically emailed who wants to watch what.
 4. Dad allows that page on the router/filter, and the kid can watch.
 
 ## Configure the email address
 
-In `public/index.html`, edit the constant near the top of the `<script>`:
-
-```js
-const DAD_EMAIL = "dad@example.com";
-```
-
-Change it to Dad's real email address.
+Set the `DAD_EMAIL` Pages env var (dashboard → Pages project → Settings →
+Environment variables). No address lives in code.
 
 ## Deploy (GitHub → Cloudflare Pages)
 
