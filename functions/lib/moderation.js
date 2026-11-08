@@ -2,6 +2,10 @@
 // Fail OPEN: any missing key, non-ok, timeout, or malformed response -> fallback verdict.
 export const EDGE_THRESHOLD = 0.6;
 export const BLOCK_THRESHOLD = 0.85;
+// Immodesty terms (swimwear, revealing clothing) score lower than explicit
+// language/sexuality but still merit parent review — hence lower cutoffs.
+export const IMMODESTY_EDGE_THRESHOLD = 0.3;
+export const IMMODESTY_BLOCK_THRESHOLD = 0.7;
 
 const QUESTIONS = {
   adult_language: {
@@ -27,7 +31,7 @@ const QUESTIONS = {
     instructions:
       "Decide whether the search query seeks immodest or sexualized presentation unsafe for a child. Consider the query text in state.",
     criteria: {
-      true: "The query seeks immodest or revealing dress, nudity, or sexualized presentation of people.",
+      true: "The query seeks immodest or revealing dress, swimwear/swimsuits/bikinis, nudity, or sexualized presentation of people.",
       false: "The query does not seek immodest, revealing, or sexualized presentation; it is modest and age-appropriate.",
     },
   },
@@ -102,12 +106,21 @@ export async function classifySearch(env, query) {
         top = c;
       }
     }
+    const blocked =
+      scores.language >= BLOCK_THRESHOLD ||
+      scores.sexuality >= BLOCK_THRESHOLD ||
+      scores.immodesty >= IMMODESTY_BLOCK_THRESHOLD;
+    const edge =
+      !blocked &&
+      (scores.language >= EDGE_THRESHOLD ||
+        scores.sexuality >= EDGE_THRESHOLD ||
+        scores.immodesty >= IMMODESTY_EDGE_THRESHOLD);
     return {
       scores,
       max,
       top,
-      blocked: max >= BLOCK_THRESHOLD,
-      edge: max >= EDGE_THRESHOLD && max < BLOCK_THRESHOLD,
+      blocked,
+      edge,
       provider: "jev",
     };
   } catch {
