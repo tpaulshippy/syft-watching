@@ -550,7 +550,7 @@ async function bootAuth() {
 
 input.addEventListener("input", function () {
   clearTimeout(debounce);
-  debounce = setTimeout(doSearch, 500);
+  debounce = setTimeout(doSearch, 1500);
 });
 input.addEventListener("keydown", function (e) {
   if (e.key === "Enter") { clearTimeout(debounce); doSearch(); }
