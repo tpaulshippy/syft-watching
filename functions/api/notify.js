@@ -17,7 +17,7 @@ export async function onRequestPost({ request, env }) {
   const url = String(body?.url || "").slice(0, 500);
   const source = String(body?.source || "").slice(0, 50);
   if (!title || !url) return json({ error: "title and url required" }, 400);
-  const from = env.FROM_EMAIL || "Syft Watching <onboarding@resend.dev>";
+  const from = env.FROM_EMAIL || "Syft Watching <watch@syftlearning.app>";
   const to = env.PARENT_EMAIL;
   const name =
     (user.firstName || "").trim() || String(user.email || "").split("@")[0] || "Someone";

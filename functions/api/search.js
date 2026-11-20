@@ -326,7 +326,7 @@ async function sendParentEmail(env, subject, text) {
       log("parent email skipped: missing key or address");
       return;
     }
-    const from = env.FROM_EMAIL || "Syft Watching <onboarding@resend.dev>";
+    const from = env.FROM_EMAIL || "Syft Watching <watch@syftlearning.app>";
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {

@@ -69,7 +69,7 @@ echo $KEY | npx wrangler pages secret put RESEND_API_KEY --project-name=syft-wat
 Optional Pages vars (dashboard → Settings → Environment variables):
 
 - `PARENT_EMAIL` (required — parent's address; no default in code)
-- `FROM_EMAIL` (default `Syft Watching <onboarding@resend.dev>`)
+- `FROM_EMAIL` (default `Syft Watching <watch@syftlearning.app>`)
 - `GOOGLE_CLIENT_ID` (required — Google OAuth client ID for login; see Auth above)
 
 Note: JustWatch HTML (`justwatch.com/us/search`) is the Disney play-URL resolver —
