@@ -1,8 +1,10 @@
-// GET /api/search?q= -> {"results":[{"source":"youtube"|"disney","title","year","type","thumbnail","watchUrl"}]}
-// Self-contained aggregate: keyless YouTube parse + Disney via JustWatch HTML
-// (play-URL resolver) + iTunes movie metadata + TVMaze show metadata.
+// GET /api/search?q= -> {"results":[{"source":"youtube"|"disney"|"angel"|"byutv"|"peacock","title","year","type","thumbnail","watchUrl"}]}
+// Self-contained aggregate: keyless YouTube parse + Disney/Angel/BYUtv/Peacock
+// via one shared JustWatch HTML fetch (play-URL resolvers) + iTunes movie
+// metadata + TVMaze show metadata.
 // Ranking: normalize = lowercase alphanumeric-only. exact==q: 100;
-// startsWith q: 60; includes q: 30; plus disney +10. Sort desc, dedupe by
+// startsWith q: 60; includes q: 30; plus disney +10, peacock +10,
+// angel +8, byutv +8. Sort desc, dedupe by
 // watchUrl, cap 20. One dead source never fails the whole request.
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
@@ -170,7 +172,7 @@ async function pipedFallback(q) {
   }
 }
 
-// --- Disney via JustWatch HTML: the play-URL resolver ---
+// --- JustWatch HTML: one shared fetch, four play-URL resolvers ---
 async function justwatchDisney(q) {
   try {
     const res = await fetch("https://www.justwatch.com/us/search?q=" + encodeURIComponent(q), {
@@ -179,47 +181,130 @@ async function justwatchDisney(q) {
     });
     if (!res.ok) return [];
     const html = await res.text();
-    const re = /disneyplus\.com(?:%2F|\/)browse(?:%2F|\/)entity-([a-f0-9-]{36})/g;
-    const seen = new Set();
-    const out = [];
-    let m;
-    while ((m = re.exec(html)) && out.length < 6) {
-      const uuid = m[1].toLowerCase();
-      if (seen.has(uuid)) continue;
-      seen.add(uuid);
-      const before = html
-        .slice(Math.max(0, m.index - 3000), m.index)
-        .replace(/<[^>]*>/g, "|");
-      let title = q;
-      let year = "";
-      const tre = /\|\s*([^|<>]{2,120}?)\s*[|\s]*\((19\d\d|20\d\d)\)/g;
-      let tm;
-      let last = null;
-      while ((tm = tre.exec(before))) last = tm;
-      if (last) {
-        title = last[1].trim();
-        year = last[2];
-      }
-      const after = html.slice(m.index, m.index + 400);
-      const tmatch = after.match(/uct_pt=(movie|show)/);
-      const type = tmatch ? (tmatch[1] === "show" ? "TV" : "Movie") : "Movie";
-      const watchUrl =
-        type === "TV"
-          ? "https://www.disneyplus.com/browse/entity-" + uuid
-          : "https://www.disneyplus.com/play/" + uuid;
-      out.push({
-        source: "disney",
-        title,
-        year,
-        type,
-        thumbnail: "",
-        watchUrl,
-      });
-    }
-    return out;
+    return [
+      ...extractDisney(html, q),
+      ...extractAngel(html, q),
+      ...extractByutv(html, q),
+      ...extractPeacock(html, q),
+    ];
   } catch {
     return [];
   }
+}
+function extractTitleYear(html, index, q) {
+  const before = html
+    .slice(Math.max(0, index - 3000), index)
+    .replace(/<[^>]*>/g, "|");
+  let title = q;
+  let year = "";
+  const tre = /\|\s*([^|<>]{2,120}?)\s*[|\s]*\((19\d\d|20\d\d)\)/g;
+  let tm;
+  let last = null;
+  while ((tm = tre.exec(before))) last = tm;
+  if (last) {
+    title = last[1].trim();
+    year = last[2];
+  }
+  return { title, year };
+}
+function extractType(html, index, fallback) {
+  const after = html.slice(index, index + 400);
+  const tmatch = after.match(/uct_pt=(movie|show)/);
+  if (tmatch) return tmatch[1] === "show" ? "TV" : "Movie";
+  return fallback;
+}
+function extractDisney(html, q) {
+  const re = /disneyplus\.com(?:%2F|\/)browse(?:%2F|\/)entity-([a-f0-9-]{36})/g;
+  const seen = new Set();
+  const out = [];
+  let m;
+  while ((m = re.exec(html)) && out.length < 6) {
+    const uuid = m[1].toLowerCase();
+    if (seen.has(uuid)) continue;
+    seen.add(uuid);
+    const { title, year } = extractTitleYear(html, m.index, q);
+    const type = extractType(html, m.index, "Movie");
+    const watchUrl =
+      type === "TV"
+        ? "https://www.disneyplus.com/browse/entity-" + uuid
+        : "https://www.disneyplus.com/play/" + uuid;
+    out.push({ source: "disney", title, year, type, thumbnail: "", watchUrl });
+  }
+  return out;
+}
+function extractAngel(html, q) {
+  const re =
+    /angel\.com(?:%2F|\/|\\u002F)title(?:%2F|\/|\\u002F)(movie|show|episode)(?:%2F|\/|\\u002F)([a-f0-9-]{36})/gi;
+  const seen = new Set();
+  const out = [];
+  let m;
+  while ((m = re.exec(html)) && out.length < 6) {
+    const kind = m[1].toLowerCase();
+    const uuid = m[2].toLowerCase();
+    const key = kind + "/" + uuid;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const { title, year } = extractTitleYear(html, m.index, q);
+    const type = extractType(html, m.index, kind === "movie" ? "Movie" : "TV");
+    out.push({
+      source: "angel",
+      title,
+      year,
+      type,
+      thumbnail: "",
+      watchUrl: "https://www.angel.com/title/" + kind + "/" + uuid,
+    });
+  }
+  return out;
+}
+function extractByutv(html, q) {
+  const re =
+    /byutv\.org(?:%2F|\/|\\u002F)((?!livetv|search|signin|signup|blog-post)[a-z0-9-]+)/gi;
+  const seen = new Set();
+  const out = [];
+  let m;
+  while ((m = re.exec(html)) && out.length < 6) {
+    const slug = m[1].toLowerCase();
+    if (seen.has(slug)) continue;
+    seen.add(slug);
+    const { title, year } = extractTitleYear(html, m.index, q);
+    const type = extractType(html, m.index, "TV");
+    out.push({
+      source: "byutv",
+      title,
+      year,
+      type,
+      thumbnail: "",
+      watchUrl: "https://www.byutv.org/" + slug,
+    });
+  }
+  return out;
+}
+function extractPeacock(html, q) {
+  const re =
+    /peacocktv\.com(?:%2F|\\u002F|\/)+watch(?:%2F|\\u002F|\/)+asset(?:%2F|\\u002F|\/)+(movies|tv)(?:%2F|\\u002F|\/)+([a-z0-9.\-]+)(?:%2F|\\u002F|\/)+([a-f0-9\-]{36}|\d{16})/gi;
+  const seen = new Set();
+  const out = [];
+  let m;
+  while ((m = re.exec(html)) && out.length < 6) {
+    const kind = m[1].toLowerCase();
+    const slug = m[2].toLowerCase();
+    const id = m[3].toLowerCase();
+    const key = kind + "/" + slug + "/" + id;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const { title, year } = extractTitleYear(html, m.index, q);
+    const type = extractType(html, m.index, kind === "movies" ? "Movie" : "TV");
+    out.push({
+      source: "peacock",
+      title,
+      year,
+      type,
+      thumbnail: "",
+      watchUrl: "https://www.peacocktv.com/watch/asset/" + kind + "/" + slug + "/" + id,
+    });
+  }
+  return out;
 }
 
 // --- Poster metadata only (never emitted as results): iTunes movies + TVMaze shows ---
@@ -313,6 +398,9 @@ function score(item, nq) {
   else if (nq && t.startsWith(nq)) s = 60;
   else if (nq && t.includes(nq)) s = 30;
   if (item.source === "disney") s += 10;
+  if (item.source === "peacock") s += 10;
+  if (item.source === "angel") s += 8;
+  if (item.source === "byutv") s += 8;
   return s;
 }
 // --- Moderation parent notifications (best-effort, never throw) ---

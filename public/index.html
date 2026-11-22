@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Syft Watching</title>
-<meta name="description" content="One safe search box for YouTube and Disney+. Pick something to watch — a parent gets emailed automatically.">
+<meta name="description" content="One safe search box for YouTube, Disney+, Angel, BYUtv, and Peacock. Pick something to watch — a parent gets emailed automatically.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -609,27 +609,31 @@ async function doSearch() {
   }
 }
 
-// Disney+ (movies & shows) first, then YouTube videos — stable within each group.
+// Disney+, Angel, BYUtv, Peacock first, then YouTube videos — stable within each group.
 function rank(items) {
-  var score = { disney: 0, youtube: 1 };
+  var score = { disney: 0, angel: 1, byutv: 2, peacock: 3, youtube: 4 };
   return items.slice().sort(function (a, b) {
-    var sa = score[a.source] !== undefined ? score[a.source] : 2;
-    var sb = score[b.source] !== undefined ? score[b.source] : 2;
+    var sa = score[a.source] !== undefined ? score[a.source] : 5;
+    var sb = score[b.source] !== undefined ? score[b.source] : 5;
     return sa - sb;
   });
 }
 
 function cardHTML(item, i) {
-  var isDisney = item.source === "disney";
+  var badges = {
+    disney: '<span class="badge dz">Disney+</span>',
+    angel: '<span class="badge dz">Angel</span>',
+    byutv: '<span class="badge dz">BYUtv</span>',
+    peacock: '<span class="badge dz">Peacock</span>',
+    youtube: '<span class="badge yt">YouTube</span>'
+  };
+  var badge = badges[item.source] || '<span class="badge yt">YouTube</span>';
   var title = item.title || "Untitled";
   var url = item.watchUrl || "";
   var metaBits = [];
   if (item.type) metaBits.push(item.type);
   if (item.year) metaBits.push(item.year);
   var meta = metaBits.join(" • ");
-  var badge = isDisney
-    ? '<span class="badge dz">Disney+</span>'
-    : '<span class="badge yt">YouTube</span>';
   var art;
   if (item.thumbnail) {
     art = '<div class="art">' + badge +
