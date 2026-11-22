@@ -258,16 +258,42 @@ function extractAngel(html, q) {
   return out;
 }
 function extractByutv(html, q) {
+  // Multi-segment: show slug or uuid/episode-slug paths. Delimiters in the
+  // JW blob may be raw, %2F-encoded, or \u002F-escaped.
   const re =
-    /byutv\.org(?:%2F|\/|\\u002F)((?!livetv|search|signin|signup|blog-post)[a-z0-9-]+)/gi;
+    /byutv\.org(?:%2F|\/|\\u002F)+((?!livetv|search|signin|signup|blog-post)[a-z0-9\-]+(?:(?:%2F|\/|\\u002F)+(?!livetv|search|signin|signup|blog-post)[a-z0-9\-]+)*)/gi;
   const seen = new Set();
   const out = [];
   let m;
   while ((m = re.exec(html)) && out.length < 6) {
-    const slug = m[1].toLowerCase();
-    if (seen.has(slug)) continue;
-    seen.add(slug);
+    const normPath = m[1]
+      .replace(/\\u002[fF]/g, "/")
+      .replace(/%2[fF]/g, "/")
+      .toLowerCase()
+      .split(/[?&#"<]/)[0]
+      .replace(/^\/+|\/+$/g, "");
+    if (!normPath) continue;
+    if (seen.has(normPath)) continue;
+    seen.add(normPath);
     const { title, year } = extractTitleYear(html, m.index, q);
+    // Title-fallback guard: when the backward scan found nothing the hit
+    // would be labeled with the raw query even for an unrelated byutv.org
+    // link (e.g. "Sound of Freedom" matched to the-sound-of-music).
+    // Require the human slug segments to overlap the query (shared word
+    // plus normalized phrase containment), else skip.
+    if (title === q) {
+      const slugSegs = normPath
+        .split("/")
+        .filter((s) => !/^[a-f0-9-]{36}$/.test(s) && !/^\d+$/.test(s));
+      const slugWords = slugSegs.join("-").split(/[^a-z0-9]+/).filter(Boolean);
+      const qWords = String(q).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+      const shared = slugWords.some((w) => qWords.includes(w));
+      const slugNorm = slugWords.join("");
+      const qNorm = normalize(q);
+      const phrase =
+        slugNorm && qNorm && (slugNorm.includes(qNorm) || qNorm.includes(slugNorm));
+      if (!shared || !phrase) continue;
+    }
     const type = extractType(html, m.index, "TV");
     out.push({
       source: "byutv",
@@ -275,14 +301,16 @@ function extractByutv(html, q) {
       year,
       type,
       thumbnail: "",
-      watchUrl: "https://www.byutv.org/" + slug,
+      watchUrl: "https://www.byutv.org/" + normPath,
     });
   }
   return out;
 }
 function extractPeacock(html, q) {
+  // Numeric asset IDs run 16-19 digits: capture the full run and require a
+  // trailing delimiter so a 19-digit ID is never truncated to 16.
   const re =
-    /peacocktv\.com(?:%2F|\\u002F|\/)+watch(?:%2F|\\u002F|\/)+asset(?:%2F|\\u002F|\/)+(movies|tv)(?:%2F|\\u002F|\/)+([a-z0-9.\-]+)(?:%2F|\\u002F|\/)+([a-f0-9\-]{36}|\d{16})/gi;
+    /peacocktv\.com(?:%2F|\\u002F|\/)+watch(?:%2F|\\u002F|\/)+asset(?:%2F|\\u002F|\/)+(movies|tv)(?:%2F|\\u002F|\/)+([a-z0-9.\-]+)(?:%2F|\\u002F|\/)+([a-f0-9\-]{36}|\d{16,19})(?=(?:%2F|\\u002F|\/|\\|"|&|\?|<|$))/gi;
   const seen = new Set();
   const out = [];
   let m;
